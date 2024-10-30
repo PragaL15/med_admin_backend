@@ -1,24 +1,41 @@
-// database/database.go
 package database
 
 import (
-	"fmt"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/jackc/pgx/v4/pgxpool"
+    "github.com/joho/godotenv"
 )
 
-// InitializeDB establishes a connection to the PostgreSQL database and returns the DB instance
-func InitializeDB() *gorm.DB {
-	// Define the DSN (Data Source Name) with sslmode=disable for local development
-	dsn := "host=localhost user=postgres password=pragalya123 dbname=admin_med port=5432"
-	
-	// Connect to the database using GORM and PostgreSQL driver
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		// Print a detailed error message if connection fails
-		panic(fmt.Sprintf("failed to connect to the database: %v", err))
-	}
+var DB *pgxpool.Pool
 
-	fmt.Println("Database connection established successfully")
-	return db
+func InitializeDB() {
+    err := godotenv.Load()
+    if err != nil {
+        log.Println("Error loading .env file")
+    }
+
+    // Print environment variables to verify they are loaded
+    log.Println("DB_USER:", os.Getenv("DB_USER"))
+    log.Println("DB_PASSWORD:", os.Getenv("DB_PASSWORD"))
+    log.Println("DB_HOST:", os.Getenv("DB_HOST"))
+    log.Println("DB_PORT:", os.Getenv("DB_PORT"))
+    log.Println("DB_NAME:", os.Getenv("DB_NAME"))
+
+    databaseURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
+        os.Getenv("DB_USER"),
+        os.Getenv("DB_PASSWORD"),
+        os.Getenv("DB_HOST"),
+        os.Getenv("DB_PORT"),
+        os.Getenv("DB_NAME"))
+
+    DB, err = pgxpool.Connect(context.Background(), databaseURL)
+    if err != nil {
+        log.Fatalf("Unable to connect to database: %v\n", err)
+        os.Exit(1)
+    }
+    log.Println("Connected to the database")
 }
