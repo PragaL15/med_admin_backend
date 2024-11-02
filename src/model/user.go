@@ -9,21 +9,23 @@ type Record struct {
 	ID          int       `db:"id" json:"id"`
 	PID         int       `db:"p_id" json:"p_id"`
 	DID         int       `db:"d_id" json:"d_id"`
+	Date time.Time `db:"date" json:"date"`
 	CreatedAt   time.Time `db:"createdAt" json:"createdAt"`
 	UpdatedAt   time.Time `db:"updatedAt" json:"updatedAt"`
 	Description string    `db:"Description" json:"description"`
-	Precription string `db:"Precription" json:"precription"`
+	Prescription string `db:"Prescription" json:"prescription"`
 }
 
 type Patient struct {
-	ID      int    `db:"id" json:"id"`
-	PID     int    `db:"p_id" json:"p_id"`
-	PName   string `db:"p_name" json:"p_name"`
-	PNumber int64  `db:"p_number" json:"p_number"` // BIGINT in PostgreSQL, matches Go's int64
-	PEmail  string `db:"p_email" json:"p_email"`
-	PStatus string `db:"p_status" json:"p_status"`
+	ID        int       `json:"id"`
+	PID       int       `json:"p_id"`
+	PName     string    `json:"p_name"`
+	PNumber   string    `json:"p_number"` // Assuming this is a string in the DB
+	PEmail    string    `json:"p_email"`
+	PStatus   string    `json:"p_status"`
+	CreatedAt time.Time `json:"createdat"`
+	UpdatedAt time.Time `json:"updatedat"`
 }
-
 type Doctor struct {
 	ID        int       `db:"id" json:"id"`
 	DID       int       `db:"d_id" json:"d_id"` 
