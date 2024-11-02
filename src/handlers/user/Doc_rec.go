@@ -61,6 +61,13 @@ func GetAllDoctors(w http.ResponseWriter, r *http.Request) {
 		doctors = append(doctors, doctor)
 	}
 
+	if err = rows.Err(); err != nil {
+		log.Println("Error after iterating doctors:", err)
+		http.Error(w, "Failed to retrieve doctors", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(doctors)
 }
 
@@ -77,6 +84,7 @@ func GetDoctorByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(doctor)
 }
 
@@ -110,14 +118,22 @@ func UpdateDoctor(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteDoctor deletes a doctor
+// DeleteDoctor deletes a doctor
 func DeleteDoctor(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 
 	query := `DELETE FROM doctor_id WHERE id = $1`
-	_, err := database.DB.Exec(context.Background(), query, id)
+	result, err := database.DB.Exec(context.Background(), query, id)
 	if err != nil {
 		log.Println("Error deleting doctor:", err)
 		http.Error(w, "Failed to delete doctor", http.StatusInternalServerError)
+		return
+	}
+
+	// Get the number of rows affected
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		http.Error(w, "Doctor not found", http.StatusNotFound)
 		return
 	}
 
