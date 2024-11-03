@@ -15,6 +15,7 @@ func SetupRoutes() *mux.Router {
 	router.HandleFunc("/records", handlers.CreateRecord).Methods("POST")
 	router.HandleFunc("/records/{id}", handlers.UpdateRecord).Methods("PUT")
 	router.HandleFunc("/records/{id}", handlers.DeleteRecord).Methods("DELETE")
+  router.HandleFunc("/records/{p_id}/description", handlers.UpdateDescriptionByPID).Methods("PUT")
 
 	// Define routes and associate them with handlers for patients
 	router.HandleFunc("/patients", handlers.GetAllPatients).Methods("GET")
