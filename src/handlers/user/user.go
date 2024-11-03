@@ -113,6 +113,34 @@ func UpdateRecord(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// UpdateDescriptionByPID updates only the description field for a specific p_id.
+func UpdateDescriptionByPID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	pID, err := strconv.Atoi(vars["p_id"])
+	if err != nil {
+		http.Error(w, "Invalid Patient ID", http.StatusBadRequest)
+		return
+	}
+
+	var data struct {
+		Description string `json:"description"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
+	query := `UPDATE record SET description=$1, updatedat=$2 WHERE p_id=$3`
+	_, err = database.DB.Exec(context.Background(), query, data.Description, time.Now(), pID)
+	if err != nil {
+		http.Error(w, "Failed to update description", http.StatusInternalServerError)
+		log.Println("Description update error:", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // UpdatePrescription updates only the prescription for multiple IDs.
 func UpdatePrescription(w http.ResponseWriter, r *http.Request) {
 	type UpdateData struct {
