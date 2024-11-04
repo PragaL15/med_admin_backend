@@ -9,6 +9,9 @@ import (
 func SetupRoutes() *mux.Router {
 	router := mux.NewRouter()
 
+//login route
+router.HandleFunc("/login", handlers.Login).Methods("POST")
+
 	// Define routes and associate them with handlers for records
 	router.HandleFunc("/records", handlers.GetRecords).Methods("GET")
 	router.HandleFunc("/records/{id}", handlers.GetRecordByID).Methods("GET")
