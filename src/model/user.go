@@ -36,3 +36,11 @@ type Doctor struct {
 	CreatedAt time.Time `db:"created_at" json:"created_at"` // Assuming you added this
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"` // Assuming you added this
 }
+
+
+type User struct {
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Status   bool   `json:"status"`
+}
