@@ -53,7 +53,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Send a success response if login is successful
 	response := LoginResponse{
 		Message: "Login successful",
 		Status:  true,
@@ -62,8 +61,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
-
-// HashPassword hashes a password before storing it.
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
@@ -85,6 +82,6 @@ func CreateUser(username, password string) (models.User, error) {
 
 	user.Username = username
 	user.Status = true
-	user.Password = hashedPassword // Store hashed password in the User struct
+	user.Password = hashedPassword 
 	return user, nil
 }
