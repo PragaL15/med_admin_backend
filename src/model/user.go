@@ -20,11 +20,13 @@ type Patient struct {
 	ID        int       `json:"id"`
 	PID       int       `json:"p_id"`
 	PName     string    `json:"p_name"`
-	PNumber   string    `json:"p_number"` // Assuming this is a string in the DB
+	PNumber   string    `json:"p_number"`
 	PEmail    string    `json:"p_email"`
 	PStatus   string    `json:"p_status"`
-	CreatedAt time.Time `json:"createdat"`
-	UpdatedAt time.Time `json:"updatedat"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	PAddress  string    `json:"p_address"`
+	PMode     string    `json:"p_mode"`
 }
 type Doctor struct {
 	ID        int       `db:"id" json:"id"`
