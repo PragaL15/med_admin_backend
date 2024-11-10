@@ -33,7 +33,7 @@ func CreatePatient(w http.ResponseWriter, r *http.Request) {
     `
 
     ctx := context.Background()
-    err := database.DB.QueryRow(ctx, query, patient.PID, patient.PName, patient.PNumber, patient.PEmail, patient.PStatus, patient.CreatedAt, patient.UpdatedAt).Scan(&patient.ID)
+    err := database.DB.QueryRow(ctx, query, patient.PID, patient.Name, patient.Phone, patient.Email, patient.Status, patient.CreatedAt, patient.UpdatedAt).Scan(&patient.PID)
     if err != nil {
         log.Println("Error creating patient:", err)
         http.Error(w, "Failed to create patient", http.StatusInternalServerError)
@@ -60,7 +60,7 @@ func GetAllPatients(w http.ResponseWriter, r *http.Request) {
 
     for rows.Next() {
         var patient models.Patient
-        if err := rows.Scan(&patient.ID, &patient.PID, &patient.PName, &patient.PNumber, &patient.PEmail, &patient.PStatus, &patient.CreatedAt, &patient.UpdatedAt); err != nil {
+        if err := rows.Scan(&patient.PID, &patient.PID, &patient.Name, &patient.Phone, &patient.Email, &patient.Status, &patient.CreatedAt, &patient.UpdatedAt); err != nil {
             log.Println("Error scanning patient:", err)
             http.Error(w, "Failed to retrieve patients", http.StatusInternalServerError)
             return
@@ -84,7 +84,7 @@ func GetPatientByID(w http.ResponseWriter, r *http.Request) {
     var patient models.Patient
     query := `SELECT id, p_id, p_name, p_number, p_email, p_status, createdat, updatedat FROM patient_id WHERE id = $1`
     ctx := context.Background()
-    err = database.DB.QueryRow(ctx, query, id).Scan(&patient.ID, &patient.PID, &patient.PName, &patient.PNumber, &patient.PEmail, &patient.PStatus, &patient.CreatedAt, &patient.UpdatedAt)
+    err = database.DB.QueryRow(ctx, query, id).Scan(&patient.PID, &patient.PID, &patient.Name, &patient.Phone, &patient.Email, &patient.Status, &patient.CreatedAt, &patient.UpdatedAt)
     if err == sql.ErrNoRows {
         http.Error(w, "Patient not found", http.StatusNotFound)
         return
@@ -122,7 +122,7 @@ func UpdatePatient(w http.ResponseWriter, r *http.Request) {
         WHERE id = $7
     `
     ctx := context.Background()
-    _, err = database.DB.Exec(ctx, query, patient.PID, patient.PName, patient.PNumber, patient.PEmail, patient.PStatus, patient.UpdatedAt, id)
+    _, err = database.DB.Exec(ctx, query, patient.PID, patient.Name, patient.Phone, patient.Email, patient.Status, patient.UpdatedAt, id)
     if err != nil {
         log.Println("Error updating patient:", err)
         http.Error(w, "Failed to update patient", http.StatusInternalServerError)

@@ -27,6 +27,10 @@ router.HandleFunc("/login", handlers.Login).Methods("POST")
 	router.HandleFunc("/patients/{id}", handlers.UpdatePatient).Methods("PUT")
 	router.HandleFunc("/patients/{id}", handlers.DeletePatient).Methods("DELETE")
   router.HandleFunc("/patient-status", handlers.GetPatientStatusForGraph).Methods("GET")
+  router.HandleFunc("/patientDetails", handlers.AddPatient).Methods("POST")
+	router.HandleFunc("/AppointmentTable", handlers.GetAppointments).Methods("GET")
+	router.HandleFunc("/AdmittedTable", handlers.GetAdmitted).Methods("GET")
+	router.HandleFunc("/RecentOperation",handlers.RecentOperation).Methods("GET")
 
 	//Defined the routes associated with handlers for Doctors.
 router.HandleFunc("/doctors", handlers.CreateDoctor).Methods("POST")

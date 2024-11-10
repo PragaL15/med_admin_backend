@@ -17,17 +17,21 @@ type Record struct {
 }
 
 type Patient struct {
-	ID        int       `json:"id"`
-	PID       int       `json:"p_id"`
-	PName     string    `json:"p_name"`
-	PNumber   string    `json:"p_number"`
-	PEmail    string    `json:"p_email"`
-	PStatus   string    `json:"p_status"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	PAddress  string    `json:"p_address"`
-	PMode     string    `json:"p_mode"`
+	ID        int       `json:"id,omitempty"`          // Maps to the 'id' column in the database
+	PID       int       `json:"p_id,omitempty"`        // Maps to the 'p_id' column in the database
+	Name      string    `json:"p_name"`                // Maps to the 'p_name' column
+	Phone     string    `json:"p_number"`              // Maps to the 'p_number' column
+	Email     string    `json:"p_email"`               // Maps to the 'p_email' column
+	Status    string    `json:"p_status"`              // Maps to the 'p_status' column
+	Address   string    `json:"p_address"`             // Maps to the 'p_address' column
+	Mode      string    `json:"p_mode"`                // Maps to the 'p_mode' column
+	Age       int       `json:"p_age"`                 // Maps to the 'p_age' column
+	Gender    string    `json:"p_gender"`              // Maps to the 'p_gender' column
+	CreatedAt time.Time `json:"createdat,omitempty"`   // Maps to the 'createdat' column
+	UpdatedAt time.Time `json:"updatedat,omitempty"`   // Maps to the 'updatedat' column
 }
+
+
 type Doctor struct {
 	ID        int       `db:"id" json:"id"`
 	DID       int       `db:"d_id" json:"d_id"` 
@@ -45,4 +49,34 @@ type User struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Status   bool   `json:"status"`
+}
+
+type Appointment struct {
+	ID           int       `json:"id"`
+	PID          int       `json:"p_id"`
+	PName        string    `json:"p_name"`
+	PNumber      string    `json:"p_number"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	AppDate      time.Time `json:"app_date"`
+	PHealth      string    `json:"p_health"`
+	DID          int       `json:"d_id"`
+	Time         string    `json:"time"`
+	ProblemHint  string    `json:"problem_hint"`
+	AppoStatus   string    `json:"appo_status"`
+}
+
+type Admitted struct {
+	ID               int       `json:"id"`
+	PID              int       `json:"p_id"`
+	PName            string    `json:"p_name"` // This is the patient name from patient_id table
+	PHealth          string    `json:"p_health"`
+	POperation       string    `json:"p_operation"`
+	POperationDate   time.Time `json:"p_operation_date"`
+	POperatedDoctor  string    `json:"p_operated_doctor"`
+	DurationAdmit    string    `json:"duration_admit"`
+	WardNo           string    `json:"ward_no"`
+	CreatedAt        time.Time `json:"created_at"`  // Ensure these fields exist if used
+	UpdatedAt        time.Time `json:"updated_at"`
+	
 }
