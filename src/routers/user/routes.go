@@ -1,46 +1,85 @@
 package routers
 
 import (
-	addDetailsHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/AddDetails"
-	dashboardHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/Dashboard"
-	loginHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/login"
-	recordHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/record"
-	"github.com/gorilla/mux"
+    addDetailsHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/AddDetails"
+    dashboardHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/Dashboard"
+    loginHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/login"
+    recordHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/record"
+    "github.com/PragaL15/med_admin_backend/src/middleware"
+    "github.com/gorilla/handlers"
+    "github.com/gorilla/mux"
+    "net/http"
 )
 
-// SetupRoutes initializes the API routes.
+// ChainMiddlewares chains multiple middlewares to a handler function
+func ChainMiddlewares(handler http.Handler, middlewares ...func(http.Handler) http.Handler) http.Handler {
+    for _, middleware := range middlewares {
+        handler = middleware(handler)
+    }
+    return handler
+}
+
+// SetupRoutes initializes and returns the configured API routes.
 func SetupRoutes() *mux.Router {
-	router := mux.NewRouter()
+    router := mux.NewRouter()
 
-	// Login route
-	router.HandleFunc("/login", loginHandlers.Login).Methods("POST")
+    // Define CORS policy (globally applied)
+    corsMiddleware := handlers.CORS(
+        handlers.AllowedOrigins([]string{"http://localhost:5173"}), // Change to env-config if needed
+        handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+        handlers.AllowedHeaders([]string{"Origin", "Content-Type", "Accept", "Authorization"}),
+    )
 
-	// Define routes and associate them with handlers for records
-	router.HandleFunc("/records", recordHandlers.GetRecords).Methods("GET")
-	router.HandleFunc("/records/{id}", recordHandlers.GetRecordByID).Methods("GET")
-	router.HandleFunc("/records", recordHandlers.CreateRecord).Methods("POST")
-	router.HandleFunc("/records/{id}", recordHandlers.UpdateRecord).Methods("PUT")
-	router.HandleFunc("/records/{id}", recordHandlers.DeleteRecord).Methods("DELETE")
-	router.HandleFunc("/records/{p_id}/description", recordHandlers.UpdateDescriptionByPID).Methods("PUT")
+    // Public routes (no authentication required)
+    router.HandleFunc("/login", loginHandlers.Login).Methods("POST")
 
-	// Define routes and associate them with handlers for patients
-	router.HandleFunc("/patients", recordHandlers.GetAllPatients).Methods("GET")
-	router.HandleFunc("/patients", recordHandlers.CreatePatient).Methods("POST")
-	router.HandleFunc("/patients/{id}",recordHandlers.GetPatientByID).Methods("GET")
-	router.HandleFunc("/patients/{id}", recordHandlers.UpdatePatient).Methods("PUT")
-	router.HandleFunc("/patients/{id}",recordHandlers.DeletePatient).Methods("DELETE")
-	router.HandleFunc("/patient-status", dashboardHandlers.GetPatientStatusForGraph).Methods("GET")
-	router.HandleFunc("/patientDetails", addDetailsHandlers.AddPatient).Methods("POST")
-	router.HandleFunc("/AppointmentTable", dashboardHandlers.GetAppointments).Methods("GET")
-	router.HandleFunc("/AdmittedTable", dashboardHandlers.GetAdmitted).Methods("GET")
-	router.HandleFunc("/RecentOperation", dashboardHandlers.RecentOperation).Methods("GET")
+    // API routes requiring authentication and/or specific roles
+    apiRouter := router.PathPrefix("/api").Subrouter()
+    apiRouter.Use(middleware.JWTAuthMiddleware)
+    apiRouter.Use(corsMiddleware)
 
-	// Define routes and associate them with handlers for doctors
-	router.HandleFunc("/doctors", recordHandlers.CreateDoctor).Methods("POST")
-	router.HandleFunc("/doctors",recordHandlers.GetAllDoctors).Methods("GET")
-	router.HandleFunc("/doctors/{id}", recordHandlers.GetDoctorByID).Methods("GET")
-	router.HandleFunc("/doctors/{id}", recordHandlers.UpdateDoctor).Methods("PUT")
-	router.HandleFunc("/doctors/{id}",recordHandlers.DeleteDoctor).Methods("DELETE")
+    // Setup specific API route groups
+    setupRecordsRoutes(apiRouter.PathPrefix("/records").Subrouter())
+    setupPatientsRoutes(apiRouter.PathPrefix("/patients").Subrouter())
+    setupDashboardRoutes(apiRouter)
+    setupDoctorsRoutes(apiRouter.PathPrefix("/doctors").Subrouter())
 
-	return router
+    return router
+}
+
+// setupRecordsRoutes configures routes related to medical records.
+func setupRecordsRoutes(router *mux.Router) {
+    router.Handle("", ChainMiddlewares(http.HandlerFunc(recordHandlers.GetRecords), middleware.RoleAuthMiddleware("2"))).Methods("GET")
+    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.GetRecordByID), middleware.RoleAuthMiddleware("2"))).Methods("GET")
+    router.Handle("", ChainMiddlewares(http.HandlerFunc(recordHandlers.CreateRecord), middleware.RoleAuthMiddleware("2"))).Methods("POST")
+    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.UpdateRecord), middleware.RoleAuthMiddleware("2"))).Methods("PUT")
+    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.DeleteRecord), middleware.RoleAuthMiddleware("2"))).Methods("DELETE")
+    router.Handle("/{p_id}/description", ChainMiddlewares(http.HandlerFunc(recordHandlers.UpdateDescriptionByPID), middleware.RoleAuthMiddleware("3"))).Methods("PUT")
+}
+
+// setupPatientsRoutes configures routes related to patient management.
+func setupPatientsRoutes(router *mux.Router) {
+    router.Handle("", ChainMiddlewares(http.HandlerFunc(recordHandlers.GetAllPatients), middleware.RoleAuthMiddleware("2"))).Methods("GET")
+    router.Handle("", ChainMiddlewares(http.HandlerFunc(recordHandlers.CreatePatient), middleware.RoleAuthMiddleware("2"))).Methods("POST")
+    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.GetPatientByID), middleware.RoleAuthMiddleware("2"))).Methods("GET")
+    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.UpdatePatient), middleware.RoleAuthMiddleware("2"))).Methods("PUT")
+    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.DeletePatient), middleware.RoleAuthMiddleware("2"))).Methods("DELETE")
+}
+
+// setupDashboardRoutes configures routes related to dashboard functionality.
+func setupDashboardRoutes(router *mux.Router) {
+    router.Handle("/patient-status", ChainMiddlewares(http.HandlerFunc(dashboardHandlers.GetPatientStatusForGraph), middleware.RoleAuthMiddleware("2"))).Methods("GET")
+    router.Handle("/patientDetails", ChainMiddlewares(http.HandlerFunc(addDetailsHandlers.AddPatient), middleware.RoleAuthMiddleware("1"))).Methods("POST")
+    router.Handle("/AppointmentTable", ChainMiddlewares(http.HandlerFunc(dashboardHandlers.GetAppointments), middleware.RoleAuthMiddleware("2"))).Methods("GET")
+    router.Handle("/AdmittedTable", ChainMiddlewares(http.HandlerFunc(dashboardHandlers.GetAdmitted), middleware.RoleAuthMiddleware("2"))).Methods("GET")
+    router.Handle("/RecentOperation", ChainMiddlewares(http.HandlerFunc(dashboardHandlers.RecentOperation), middleware.RoleAuthMiddleware("2"))).Methods("GET")
+}
+
+// setupDoctorsRoutes configures routes related to doctors.
+func setupDoctorsRoutes(router *mux.Router) {
+    router.Handle("", ChainMiddlewares(http.HandlerFunc(recordHandlers.GetAllDoctors), middleware.RoleAuthMiddleware("3"))).Methods("GET")
+    router.Handle("", ChainMiddlewares(http.HandlerFunc(recordHandlers.CreateDoctor), middleware.RoleAuthMiddleware("2"))).Methods("POST")
+    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.GetDoctorByID), middleware.RoleAuthMiddleware("3"))).Methods("GET")
+    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.UpdateDoctor), middleware.RoleAuthMiddleware("2"))).Methods("PUT")
+    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.DeleteDoctor), middleware.RoleAuthMiddleware("2"))).Methods("DELETE")
 }
