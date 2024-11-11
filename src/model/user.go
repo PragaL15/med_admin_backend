@@ -74,34 +74,48 @@ type Admitted struct {
 	
 }
 type User struct {
-	ID       int    `json:"id"`
-	Username string `json:"username"`
-	Password string `json:"password"` // In a real app, hash the password
-	RoleID   int    `json:"role_id"`
+	ID        int       `json:"id"`
+	Username  string    `json:"username"`
+	Password  string    `json:"password"`
+	UserID    int       `json:"user_id"`   // User ID (may be external or internal)
+	Status    int       `json:"status"`    // 1 = Active, 0 = Inactive
+	RoleID    int       `json:"role_id"`   // Role ID linking to roles table
+	RoleName  string    `json:"role_name"` // Role name retrieved via JOIN with roles table
+	CreatedAt time.Time `json:"created_at"`
 }
 
-// Role represents a user role
+// Role represents the role record in the database.
 type Role struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	RoleID   int    `json:"role_id"`   // Unique identifier for the role
+	RoleName string `json:"role_name"` // The name of the role (e.g., "admin", "user", etc.)
 }
 
-// APIPermission represents a permission to access a specific API route
-type APIPermission struct {
-	ID     int    `json:"id"`
-	Route  string `json:"route"`
-	RoleID int    `json:"role_id"`
+// LoginRequest represents the expected JSON payload for login.
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
-// UserRole links users with their roles
-type UserRole struct {
-	UserID int `json:"user_id"`
-	RoleID int `json:"role_id"`
+// LoginResponse represents the response after a successful or failed login attempt.
+type LoginResponse struct {
+	Message string `json:"message"`
+	Status  bool   `json:"status"`
+	UserID  int    `json:"user_id,omitempty"` // UserID only included on successful login
+	RoleID  int    `json:"role_id,omitempty"` // RoleID of the user
+	RoleName string `json:"role_name,omitempty"` // RoleName of the user
 }
 
-// Route represents a route in the application
-type Route struct {
-	ID     int    `json:"id"`
-	Path   string `json:"path"`
-	RoleID int    `json:"role_id"`
+// CreateUserRequest represents the expected JSON payload for creating a new user.
+type CreateUserRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	RoleID   int    `json:"role_id"` // Role assigned to the new user
+	Status   int    `json:"status"`  // User status (1 = Active, 0 = Inactive)
+}
+
+// CreateUserResponse represents the response after successfully creating a user.
+type CreateUserResponse struct {
+	Message string `json:"message"`
+	Status  bool   `json:"status"`
+	User    User   `json:"user"`
 }
