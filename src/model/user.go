@@ -44,13 +44,6 @@ type Doctor struct {
 }
 
 
-type User struct {
-	ID       int64  `json:"id"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Status   bool   `json:"status"`
-}
-
 type Appointment struct {
 	ID           int       `json:"id"`
 	PID          int       `json:"p_id"`
@@ -79,4 +72,36 @@ type Admitted struct {
 	CreatedAt        time.Time `json:"created_at"`  // Ensure these fields exist if used
 	UpdatedAt        time.Time `json:"updated_at"`
 	
+}
+type User struct {
+	ID       int    `json:"id"`
+	Username string `json:"username"`
+	Password string `json:"password"` // In a real app, hash the password
+	RoleID   int    `json:"role_id"`
+}
+
+// Role represents a user role
+type Role struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+// APIPermission represents a permission to access a specific API route
+type APIPermission struct {
+	ID     int    `json:"id"`
+	Route  string `json:"route"`
+	RoleID int    `json:"role_id"`
+}
+
+// UserRole links users with their roles
+type UserRole struct {
+	UserID int `json:"user_id"`
+	RoleID int `json:"role_id"`
+}
+
+// Route represents a route in the application
+type Route struct {
+	ID     int    `json:"id"`
+	Path   string `json:"path"`
+	RoleID int    `json:"role_id"`
 }

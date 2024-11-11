@@ -52,7 +52,6 @@ func GetAppointments(w http.ResponseWriter, r *http.Request) {
         var appointment models.Appointment
         var dbTime time.Time
 
-        // Scan values from the database, including `p_name` and `p_number` from `patient_id`
         if err := rows.Scan(
             &appointment.ID, &appointment.PID, &appointment.PName, &appointment.PNumber,
             &appointment.CreatedAt, &appointment.UpdatedAt, &appointment.AppDate, &appointment.PHealth,

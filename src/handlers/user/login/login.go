@@ -35,8 +35,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	// Query to retrieve user data by username from user_table
 	var user models.User
-	query := `SELECT id, username, password, status FROM user_table WHERE username = $1`
-	err := database.DB.QueryRow(context.Background(), query, req.Username).Scan(&user.ID, &user.Username, &user.Password, &user.Status)
+	query := `SELECT id, username, password FROM user_table WHERE username = $1`
+	err := database.DB.QueryRow(context.Background(), query, req.Username).Scan(&user.ID, &user.Username, &user.Password)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -81,7 +81,6 @@ func CreateUser(username, password string) (models.User, error) {
 	}
 
 	user.Username = username
-	user.Status = true
 	user.Password = hashedPassword 
 	return user, nil
 }
