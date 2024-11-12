@@ -4,29 +4,29 @@ import (
     "net/http"
 )
 
-// RoleAuthMiddleware checks if a user has one of the required roles to access a route.
-func RoleAuthMiddleware(allowedRoles ...string) func(http.Handler) http.Handler {
+// UserAuthMiddleware checks if a user has one of the required user IDs to access a route.
+func RoleAuthMiddleware(allowedUserIDs ...string) func(http.Handler) http.Handler {
     return func(next http.Handler) http.Handler {
         return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-            // Retrieve role_id from the request context
-            roleID, ok := r.Context().Value("role_id").(string)
+            // Retrieve user_id from the request context
+            userID, ok := r.Context().Value("user_id").(string)
             if !ok {
-                http.Error(w, "Access denied: Role not found", http.StatusForbidden)
+                http.Error(w, "Access denied: User ID not found", http.StatusForbidden)
                 return
             }
 
-            // Check if roleID is in the allowedRoles list
+            // Check if userID is in the allowedUserIDs list
             isAuthorized := false
-            for _, role := range allowedRoles {
-                if roleID == role {
+            for _, id := range allowedUserIDs {
+                if userID == id {
                     isAuthorized = true
                     break
                 }
             }
 
-            // If roleID does not match any allowed role, deny access
+            // If userID does not match any allowed ID, deny access
             if !isAuthorized {
-                http.Error(w, "Access denied: Unauthorized role", http.StatusForbidden)
+                http.Error(w, "Access denied: Unauthorized user", http.StatusForbidden)
                 return
             }
 
