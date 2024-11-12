@@ -17,18 +17,18 @@ type Record struct {
 }
 
 type Patient struct {
-	ID        int       `json:"id,omitempty"`          // Maps to the 'id' column in the database
-	PID       int       `json:"p_id,omitempty"`        // Maps to the 'p_id' column in the database
-	Name      string    `json:"p_name"`                // Maps to the 'p_name' column
-	Phone     string    `json:"p_number"`              // Maps to the 'p_number' column
-	Email     string    `json:"p_email"`               // Maps to the 'p_email' column
-	Status    string    `json:"p_status"`              // Maps to the 'p_status' column
-	Address   string    `json:"p_address"`             // Maps to the 'p_address' column
-	Mode      string    `json:"p_mode"`                // Maps to the 'p_mode' column
-	Age       int       `json:"p_age"`                 // Maps to the 'p_age' column
-	Gender    string    `json:"p_gender"`              // Maps to the 'p_gender' column
-	CreatedAt time.Time `json:"createdat,omitempty"`   // Maps to the 'createdat' column
-	UpdatedAt time.Time `json:"updatedat,omitempty"`   // Maps to the 'updatedat' column
+	ID        int       `json:"id"`
+	PID       int    `json:"p_id"`
+	Name      string    `json:"p_name"`
+	Phone     string    `json:"p_number"`
+	Email     string    `json:"p_email"`
+	Status    string    `json:"p_status"`
+	CreatedAt time.Time `json:"createdat"`
+	UpdatedAt time.Time `json:"updatedat"`
+	Address   string    `json:"p_address"`
+	Mode      string    `json:"p_mode"`
+	Age       int       `json:"p_age"`
+	Gender    string    `json:"p_gender"`
 }
 
 
