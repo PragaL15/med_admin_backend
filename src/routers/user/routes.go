@@ -11,32 +11,25 @@ import (
     "net/http"
 )
 
-// ChainMiddlewares chains multiple middlewares to a handler function
-func ChainMiddlewares(handler http.Handler, middlewares ...func(http.Handler) http.Handler) http.Handler {
-    for _, middleware := range middlewares {
-        handler = middleware(handler)
-    }
-    return handler
-}
-
 // SetupRoutes initializes and returns the configured API routes.
 func SetupRoutes() *mux.Router {
     router := mux.NewRouter()
 
-    // Define CORS policy (globally applied)
+    // Define global CORS policy (apply to all routes)
     corsMiddleware := handlers.CORS(
-        handlers.AllowedOrigins([]string{"http://localhost:5173"}), // Change to env-config if needed
+        handlers.AllowedOrigins([]string{"http://localhost:5173"}), // Adjust origin for production
         handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
         handlers.AllowedHeaders([]string{"Origin", "Content-Type", "Accept", "Authorization"}),
     )
-
+    router.Use(corsMiddleware)
+    
     // Public routes (no authentication required)
     router.HandleFunc("/login", loginHandlers.Login).Methods("POST")
 
-    // API routes requiring authentication and/or specific roles
+    // API routes that require authentication
     apiRouter := router.PathPrefix("/api").Subrouter()
     apiRouter.Use(middleware.JWTAuthMiddleware)
-    apiRouter.Use(corsMiddleware)
+		apiRouter.Use(corsMiddleware)
 
     // Setup specific API route groups
     setupRecordsRoutes(apiRouter.PathPrefix("/records").Subrouter())
@@ -49,37 +42,37 @@ func SetupRoutes() *mux.Router {
 
 // setupRecordsRoutes configures routes related to medical records.
 func setupRecordsRoutes(router *mux.Router) {
-    router.Handle("", ChainMiddlewares(http.HandlerFunc(recordHandlers.GetRecords), middleware.RoleAuthMiddleware("2"))).Methods("GET")
-    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.GetRecordByID), middleware.RoleAuthMiddleware("2"))).Methods("GET")
-    router.Handle("", ChainMiddlewares(http.HandlerFunc(recordHandlers.CreateRecord), middleware.RoleAuthMiddleware("2"))).Methods("POST")
-    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.UpdateRecord), middleware.RoleAuthMiddleware("2"))).Methods("PUT")
-    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.DeleteRecord), middleware.RoleAuthMiddleware("2"))).Methods("DELETE")
-    router.Handle("/{p_id}/description", ChainMiddlewares(http.HandlerFunc(recordHandlers.UpdateDescriptionByPID), middleware.RoleAuthMiddleware("3"))).Methods("PUT")
+    router.Handle("", http.HandlerFunc(recordHandlers.GetRecords)).Methods("GET")
+    router.Handle("/{id}", http.HandlerFunc(recordHandlers.GetRecordByID)).Methods("GET")
+    router.Handle("", http.HandlerFunc(recordHandlers.CreateRecord)).Methods("POST")
+    router.Handle("/{id}", http.HandlerFunc(recordHandlers.UpdateRecord)).Methods("PUT")
+    router.Handle("/{id}", http.HandlerFunc(recordHandlers.DeleteRecord)).Methods("DELETE")
+    router.Handle("/{p_id}/description", http.HandlerFunc(recordHandlers.UpdateDescriptionByPID)).Methods("PUT")
 }
 
 // setupPatientsRoutes configures routes related to patient management.
 func setupPatientsRoutes(router *mux.Router) {
-    router.Handle("", ChainMiddlewares(http.HandlerFunc(recordHandlers.GetAllPatients), middleware.RoleAuthMiddleware("2"))).Methods("GET")
-    router.Handle("", ChainMiddlewares(http.HandlerFunc(recordHandlers.CreatePatient), middleware.RoleAuthMiddleware("2"))).Methods("POST")
-    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.GetPatientByID), middleware.RoleAuthMiddleware("2"))).Methods("GET")
-    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.UpdatePatient), middleware.RoleAuthMiddleware("2"))).Methods("PUT")
-    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.DeletePatient), middleware.RoleAuthMiddleware("2"))).Methods("DELETE")
+    router.Handle("", http.HandlerFunc(recordHandlers.GetAllPatients)).Methods("GET")
+    router.Handle("", http.HandlerFunc(recordHandlers.CreatePatient)).Methods("POST")
+    router.Handle("/{id}", http.HandlerFunc(recordHandlers.GetPatientByID)).Methods("GET")
+    router.Handle("/{id}", http.HandlerFunc(recordHandlers.UpdatePatient)).Methods("PUT")
+    router.Handle("/{id}", http.HandlerFunc(recordHandlers.DeletePatient)).Methods("DELETE")
 }
 
 // setupDashboardRoutes configures routes related to dashboard functionality.
 func setupDashboardRoutes(router *mux.Router) {
-    router.Handle("/patient-status", ChainMiddlewares(http.HandlerFunc(dashboardHandlers.GetPatientStatusForGraph), middleware.RoleAuthMiddleware("2"))).Methods("GET")
-    router.Handle("/patientDetails", ChainMiddlewares(http.HandlerFunc(addDetailsHandlers.AddPatient), middleware.RoleAuthMiddleware("1"))).Methods("POST")
-    router.Handle("/AppointmentTable", ChainMiddlewares(http.HandlerFunc(dashboardHandlers.GetAppointments), middleware.RoleAuthMiddleware("2"))).Methods("GET")
-    router.Handle("/AdmittedTable", ChainMiddlewares(http.HandlerFunc(dashboardHandlers.GetAdmitted), middleware.RoleAuthMiddleware("2"))).Methods("GET")
-    router.Handle("/RecentOperation", ChainMiddlewares(http.HandlerFunc(dashboardHandlers.RecentOperation), middleware.RoleAuthMiddleware("2"))).Methods("GET")
+    router.Handle("/patient-status", http.HandlerFunc(dashboardHandlers.GetPatientStatusForGraph)).Methods("GET")
+    router.Handle("/patientDetails", http.HandlerFunc(addDetailsHandlers.AddPatient)).Methods("POST")
+    router.Handle("/AppointmentTable", http.HandlerFunc(dashboardHandlers.GetAppointments)).Methods("GET")
+    router.Handle("/AdmittedTable", http.HandlerFunc(dashboardHandlers.GetAdmitted)).Methods("GET")
+    router.Handle("/RecentOperation", http.HandlerFunc(dashboardHandlers.RecentOperation)).Methods("GET")
 }
 
 // setupDoctorsRoutes configures routes related to doctors.
 func setupDoctorsRoutes(router *mux.Router) {
-    router.Handle("", ChainMiddlewares(http.HandlerFunc(recordHandlers.GetAllDoctors), middleware.RoleAuthMiddleware("3"))).Methods("GET")
-    router.Handle("", ChainMiddlewares(http.HandlerFunc(recordHandlers.CreateDoctor), middleware.RoleAuthMiddleware("2"))).Methods("POST")
-    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.GetDoctorByID), middleware.RoleAuthMiddleware("3"))).Methods("GET")
-    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.UpdateDoctor), middleware.RoleAuthMiddleware("2"))).Methods("PUT")
-    router.Handle("/{id}", ChainMiddlewares(http.HandlerFunc(recordHandlers.DeleteDoctor), middleware.RoleAuthMiddleware("2"))).Methods("DELETE")
+    router.Handle("", http.HandlerFunc(recordHandlers.GetAllDoctors)).Methods("GET")
+    router.Handle("", http.HandlerFunc(recordHandlers.CreateDoctor)).Methods("POST")
+    router.Handle("/{id}", http.HandlerFunc(recordHandlers.GetDoctorByID)).Methods("GET")
+    router.Handle("/{id}", http.HandlerFunc(recordHandlers.UpdateDoctor)).Methods("PUT")
+    router.Handle("/{id}", http.HandlerFunc(recordHandlers.DeleteDoctor)).Methods("DELETE")
 }
