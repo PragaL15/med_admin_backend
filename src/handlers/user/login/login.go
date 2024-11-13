@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
-	"time"
-
 	"github.com/PragaL15/med_admin_backend/database"
 	models "github.com/PragaL15/med_admin_backend/src/model"
+	"github.com/PragaL15/med_admin_backend/src/utils"
 	"golang.org/x/crypto/bcrypt"
+	"fmt"
+	"context"
 )
 
 // LoginRequest represents the expected JSON payload for login.
@@ -21,83 +21,74 @@ type LoginRequest struct {
 type LoginResponse struct {
 	Message string `json:"message"`
 	Status  bool   `json:"status"`
+	Token   string `json:"token,omitempty"`  // Token only included on successful login
 	UserID  int    `json:"user_id,omitempty"` // UserID only included on successful login
+	RoleID  int    `json:"role_id,omitempty"` // RoleID of the user
+	RoleName string `json:"role_name,omitempty"` // RoleName of the user
 }
 
-// Login authenticates a user based on username and password.
+// Login authenticates a user and issues a JWT if valid.
 func Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
+	// Decode request body
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(LoginResponse{Message: "Invalid request payload", Status: false})
+		http.Error(w, `{"message":"Invalid request payload","status":false}`, http.StatusBadRequest)
 		return
 	}
 
-	// Query to retrieve user data by username from user_table
+	// Retrieve user data by username using GORM
 	var user models.User
-	query := `SELECT id, username, password, user_id, status FROM user_table WHERE username = $1`
-	err := database.DB.QueryRow(context.Background(), query, req.Username).Scan(&user.ID, &user.Username, &user.Password, &user.UserID, &user.Status)
+	err := database.DB.Where("username = ?", req.Username).First(&user).Error
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(LoginResponse{Message: "Invalid username or password", Status: false})
+		http.Error(w, `{"message":"Invalid username or password","status":false}`, http.StatusUnauthorized)
 		return
 	}
 
-	// Check if the user is active (status = 1)
+	// Check if the user's account is active
 	if user.Status != 1 {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(LoginResponse{Message: "Account is inactive", Status: false})
+		http.Error(w, `{"message":"Account is inactive","status":false}`, http.StatusUnauthorized)
 		return
 	}
 
-	// Check if the password matches the hashed password in the database
+	// Verify the password using bcrypt
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(LoginResponse{Message: "Invalid username or password", Status: false})
+		http.Error(w, `{"message":"Invalid username or password","status":false}`, http.StatusUnauthorized)
 		return
 	}
 
-	// Return successful login response with user_id
+	// Generate a JWT for the authenticated user
+	tokenString, err := utils.GenerateJWT(user.UserID)
+	if err != nil {
+		http.Error(w, `{"message":"Could not generate token","status":false}`, http.StatusInternalServerError)
+		return
+	}
+
+	// Decode the token to get the user_id (this is the key part)
+	decodedUserID, err := utils.DecodeJWTTokenAndGetUserID(tokenString)
+	if err != nil {
+		http.Error(w, `{"message":"Error decoding token","status":false}`, http.StatusInternalServerError)
+		return
+	}
+
+	// Print the user_id to the terminal (this is what you want)
+	fmt.Printf("Decoded user_id: %d\n", decodedUserID)
+
+	// Store user_id in the request context for use in middlewares and other handlers
+	ctx := context.WithValue(r.Context(), "userID", decodedUserID)
+	r = r.WithContext(ctx)
+
+	// Respond with the token, user ID, and role information
 	response := LoginResponse{
 		Message: "Login successful",
 		Status:  true,
+		Token:   tokenString,
 		UserID:  user.UserID,
+		RoleID:  user.RoleID,
+		RoleName: user.RoleName,
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
-}
-
-// HashPassword hashes a plain password.
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
-}
-
-// CreateUser creates a new user in the user_table.
-func CreateUser(username, password string, userID int, status int) (models.User, error) {
-	hashedPassword, err := HashPassword(password)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	// Insert the new user into the user_table
-	query := `INSERT INTO user_table (username, password, user_id, status, createdat) VALUES ($1, $2, $3, $4, $5) RETURNING id`
-	var user models.User
-	err = database.DB.QueryRow(context.Background(), query, username, hashedPassword, userID, status, time.Now()).Scan(&user.ID)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	// Populate the returned user struct
-	user.Username = username
-	user.Password = hashedPassword
-	user.UserID = userID
-	user.Status = status
-	return user, nil
 }
