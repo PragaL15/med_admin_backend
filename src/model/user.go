@@ -9,16 +9,20 @@ type Record struct {
 	ID          int       `db:"id" json:"id"`
 	PID         int       `db:"p_id" json:"p_id"`
 	DID         int       `db:"d_id" json:"d_id"`
-	Date time.Time `db:"date" json:"date"`
+	Date        time.Time `db:"date" json:"date"`
 	CreatedAt   time.Time `db:"createdAt" json:"createdAt"`
 	UpdatedAt   time.Time `db:"updatedAt" json:"updatedAt"`
 	Description string    `db:"Description" json:"description"`
-	Prescription string `db:"Prescription" json:"prescription"`
+	Prescription string  `db:"Prescription" json:"prescription"`
+}
+
+func (Record) TableName() string {
+	return "record" // Ensure the table name matches the database table
 }
 
 type Patient struct {
 	ID        int       `json:"id"`
-	PID       int    `json:"p_id"`
+  PID uint `gorm:"column:p_id;primaryKey"`
 	Name      string    `json:"p_name"`
 	Phone     string    `json:"p_number"`
 	Email     string    `json:"p_email"`
@@ -31,91 +35,113 @@ type Patient struct {
 	Gender    string    `json:"p_gender"`
 }
 
+func (Patient) TableName() string {
+	return "patient_id" // Ensure the table name matches the database table
+}
 
 type Doctor struct {
 	ID        int       `db:"id" json:"id"`
-	DID       int       `db:"d_id" json:"d_id"` 
+	DID uint `gorm:"column:d_id;primaryKey"`
 	DName     string    `db:"d_name" json:"d_name"`
-	DNumber   int64     `db:"d_number" json:"d_number"` // Adjust type if needed
+	DNumber   int64     `db:"d_number" json:"d_number"` 
 	DEmail    string    `db:"d_email" json:"d_email"`
 	DStatus   string    `db:"d_status" json:"d_status"`
-	CreatedAt time.Time `db:"created_at" json:"created_at"` // Assuming you added this
-	UpdatedAt time.Time `db:"updated_at" json:"updated_at"` // Assuming you added this
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+type DoctorWithPatients struct {
+	DID   uint    `json:"d_id"`
+	DName string `json:"d_name"`
+	PIDs  []int  `json:"p_ids"`
 }
 
 
+func (Doctor) TableName() string {
+	return "doctor_id" // Ensure the table name matches the database table
+}
+
 type Appointment struct {
-	ID           int       `json:"id"`
-	PID          int       `json:"p_id"`
-	PName        string    `json:"p_name"`
-	PNumber      string    `json:"p_number"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	AppDate      time.Time `json:"app_date"`
-	PHealth      string    `json:"p_health"`
-	DID          int       `json:"d_id"`
-	Time         string    `json:"time"`
-	ProblemHint  string    `json:"problem_hint"`
-	AppoStatus   string    `json:"appo_status"`
+	ID            int       `gorm:"primaryKey"`
+	PID           int       `json:"p_id"`
+	PName         string    `json:"p_name"`
+	PNumber       string    `json:"p_number"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	AppDate       time.Time `json:"app_date"`
+	PHealth       string    `json:"p_health"`
+	DID           int       `json:"d_id"`
+	Time          string    `json:"time"`
+	ProblemHint   string    `json:"problem_hint"`
+	AppoStatus    string    `json:"appo_status"`
+}
+type AppointmentPost struct {
+	ID            int       `gorm:"primaryKey"`
+	PID           int       `json:"p_id"`
+	AppDate       time.Time `json:"app_date"`
+	PHealth       string    `json:"p_health"`
+	DID           int       `json:"d_id"`
+	Time          string    `json:"time"`
+	ProblemHint   string    `json:"problem_hint"`
+	AppoStatus    string    `json:"appo_status"`
+}
+
+func (Appointment) TableName() string {
+	return "appointments" // Ensure the table name matches the database table
+}
+func (AppointmentPost) TableName() string {
+	return "appointments" // Ensure the table name
 }
 
 type Admitted struct {
 	ID               int       `json:"id"`
 	PID              int       `json:"p_id"`
-	PName            string    `json:"p_name"` // This is the patient name from patient_id table
+	PName            string    `json:"p_name"`
 	PHealth          string    `json:"p_health"`
 	POperation       string    `json:"p_operation"`
 	POperationDate   time.Time `json:"p_operation_date"`
 	POperatedDoctor  string    `json:"p_operated_doctor"`
 	DurationAdmit    string    `json:"duration_admit"`
 	WardNo           string    `json:"ward_no"`
-	CreatedAt        time.Time `json:"created_at"`  // Ensure these fields exist if used
+	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
-	
 }
+
+func (Admitted) TableName() string {
+	return "admitted" // Ensure the table name matches the database table
+}
+
 type User struct {
 	ID        int       `json:"id"`
 	Username  string    `json:"username"`
 	Password  string    `json:"password"`
-	UserID    int       `json:"user_id"`   // User ID (may be external or internal)
-	Status    int       `json:"status"`    // 1 = Active, 0 = Inactive
-	RoleID    int       `json:"role_id"`   // Role ID linking to roles table
-	RoleName  string    `json:"role_name"` // Role name retrieved via JOIN with roles table
+	UserID    int       `json:"user_id"`
+	Status    int       `json:"status"`
+	RoleID    int       `json:"role_id"`
+	RoleName  string    `json:"role_name"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+func (User) TableName() string {
+	return "user_table" // Ensure the table name matches the database table
+}
+
+type Route struct {
+	RouteID  int    `json:"route_id"`
+	RoutePath string `json:"route_path"`
+	UserID   int    `json:"user_id"`
+}
+
+func (Route) TableName() string {
+	return "routes" // Ensure the table name matches the database table
 }
 
 // Role represents the role record in the database.
 type Role struct {
-	RoleID   int    `json:"role_id"`   // Unique identifier for the role
-	RoleName string `json:"role_name"` // The name of the role (e.g., "admin", "user", etc.)
+	RoleID   int    `json:"role_id"`
+	RoleName string `json:"role_name"`
 }
 
-// LoginRequest represents the expected JSON payload for login.
-type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+func (Role) TableName() string {
+	return "roles" // Ensure the table name matches the database table
 }
 
-// LoginResponse represents the response after a successful or failed login attempt.
-type LoginResponse struct {
-	Message string `json:"message"`
-	Status  bool   `json:"status"`
-	UserID  int    `json:"user_id,omitempty"` // UserID only included on successful login
-	RoleID  int    `json:"role_id,omitempty"` // RoleID of the user
-	RoleName string `json:"role_name,omitempty"` // RoleName of the user
-}
-
-// CreateUserRequest represents the expected JSON payload for creating a new user.
-type CreateUserRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	RoleID   int    `json:"role_id"` // Role assigned to the new user
-	Status   int    `json:"status"`  // User status (1 = Active, 0 = Inactive)
-}
-
-// CreateUserResponse represents the response after successfully creating a user.
-type CreateUserResponse struct {
-	Message string `json:"message"`
-	Status  bool   `json:"status"`
-	User    User   `json:"user"`
-}
