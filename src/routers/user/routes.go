@@ -5,14 +5,16 @@ import (
     dashboardHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/Dashboard"
     loginHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/login"
     recordHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/record"
+		appointmentHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/BookAppointment" 
+	
     "github.com/PragaL15/med_admin_backend/src/middleware"
     "github.com/gorilla/handlers"
     "github.com/gorilla/mux"
-    "net/http"
+    "gorm.io/gorm"
 )
 
 // SetupRoutes initializes and returns the configured API routes.
-func SetupRoutes() *mux.Router {
+func SetupRoutes(db *gorm.DB) *mux.Router {
     router := mux.NewRouter()
 
     // Define global CORS policy (apply to all routes)
@@ -22,57 +24,62 @@ func SetupRoutes() *mux.Router {
         handlers.AllowedHeaders([]string{"Origin", "Content-Type", "Accept", "Authorization"}),
     )
     router.Use(corsMiddleware)
-    
+
     // Public routes (no authentication required)
     router.HandleFunc("/login", loginHandlers.Login).Methods("POST")
 
-    // API routes that require authentication
+    // API routes that require authentication and role-based access
     apiRouter := router.PathPrefix("/api").Subrouter()
-    apiRouter.Use(middleware.JWTAuthMiddleware)
-		apiRouter.Use(corsMiddleware)
+    apiRouter.Use(middleware.RoleBasedAccessMiddleware(db)) 
+    apiRouter.Use(corsMiddleware) 
 
     // Setup specific API route groups
-    setupRecordsRoutes(apiRouter.PathPrefix("/records").Subrouter())
-    setupPatientsRoutes(apiRouter.PathPrefix("/patients").Subrouter())
-    setupDashboardRoutes(apiRouter)
-    setupDoctorsRoutes(apiRouter.PathPrefix("/doctors").Subrouter())
-
+    setupRecordsRoutes(apiRouter.PathPrefix("/records").Subrouter(), db)
+    setupPatientsRoutes(apiRouter.PathPrefix("/patients").Subrouter(), db)
+    setupDashboardRoutes(apiRouter.PathPrefix("/dashboard").Subrouter(), db)
+    setupDoctorsRoutes(apiRouter.PathPrefix("/doctors").Subrouter(), db)
+	setupAppointmentsRoutes(apiRouter.PathPrefix("/appointments").Subrouter(), db)
+       
     return router
 }
 
 // setupRecordsRoutes configures routes related to medical records.
-func setupRecordsRoutes(router *mux.Router) {
-    router.Handle("", http.HandlerFunc(recordHandlers.GetRecords)).Methods("GET")
-    router.Handle("/{id}", http.HandlerFunc(recordHandlers.GetRecordByID)).Methods("GET")
-    router.Handle("", http.HandlerFunc(recordHandlers.CreateRecord)).Methods("POST")
-    router.Handle("/{id}", http.HandlerFunc(recordHandlers.UpdateRecord)).Methods("PUT")
-    router.Handle("/{id}", http.HandlerFunc(recordHandlers.DeleteRecord)).Methods("DELETE")
-    router.Handle("/{p_id}/description", http.HandlerFunc(recordHandlers.UpdateDescriptionByPID)).Methods("PUT")
+func setupRecordsRoutes(router *mux.Router, db *gorm.DB) {
+    router.HandleFunc("", recordHandlers.GetRecords(db)).Methods("GET")
+    router.HandleFunc("/{id}", recordHandlers.GetRecordByID(db)).Methods("GET")
+    router.HandleFunc("", recordHandlers.CreateRecord(db)).Methods("POST")
+    router.HandleFunc("/{id}", recordHandlers.UpdateRecord(db)).Methods("PUT")
+    router.HandleFunc("/{id}", recordHandlers.DeleteRecord(db)).Methods("DELETE")
+    router.HandleFunc("/{p_id}/description", recordHandlers.UpdateDescriptionByPID(db)).Methods("PUT")
 }
 
 // setupPatientsRoutes configures routes related to patient management.
-func setupPatientsRoutes(router *mux.Router) {
-    router.Handle("", http.HandlerFunc(recordHandlers.GetAllPatients)).Methods("GET")
-    router.Handle("", http.HandlerFunc(recordHandlers.CreatePatient)).Methods("POST")
-    router.Handle("/{id}", http.HandlerFunc(recordHandlers.GetPatientByID)).Methods("GET")
-    router.Handle("/{id}", http.HandlerFunc(recordHandlers.UpdatePatient)).Methods("PUT")
-    router.Handle("/{id}", http.HandlerFunc(recordHandlers.DeletePatient)).Methods("DELETE")
+func setupPatientsRoutes(router *mux.Router, db *gorm.DB) {
+    router.HandleFunc("", recordHandlers.GetAllPatients(db)).Methods("GET")
+    router.HandleFunc("", recordHandlers.CreatePatient(db)).Methods("POST")
+    router.HandleFunc("/{id}", recordHandlers.GetPatientByID(db)).Methods("GET")
+    router.HandleFunc("/{id}", recordHandlers.UpdatePatient(db)).Methods("PUT")
+    router.HandleFunc("/{id}", recordHandlers.DeletePatient(db)).Methods("DELETE")
 }
 
 // setupDashboardRoutes configures routes related to dashboard functionality.
-func setupDashboardRoutes(router *mux.Router) {
-    router.Handle("/patient-status", http.HandlerFunc(dashboardHandlers.GetPatientStatusForGraph)).Methods("GET")
-    router.Handle("/patientDetails", http.HandlerFunc(addDetailsHandlers.AddPatient)).Methods("POST")
-    router.Handle("/AppointmentTable", http.HandlerFunc(dashboardHandlers.GetAppointments)).Methods("GET")
-    router.Handle("/AdmittedTable", http.HandlerFunc(dashboardHandlers.GetAdmitted)).Methods("GET")
-    router.Handle("/RecentOperation", http.HandlerFunc(dashboardHandlers.RecentOperation)).Methods("GET")
+// Setup dashboard routes
+func setupDashboardRoutes(router *mux.Router, db *gorm.DB) {
+	router.HandleFunc("/patient-status", dashboardHandlers.GetPatientStatusForGraph(db)).Methods("GET")
+	router.HandleFunc("/patientDetails", addDetailsHandlers.AddPatient(db)).Methods("POST")  // Ensure POST is allowed
+	router.HandleFunc("/AppointmentTable", dashboardHandlers.GetAppointments(db)).Methods("GET")
+	router.HandleFunc("/AdmittedTable", dashboardHandlers.GetAdmitted(db)).Methods("GET")
+	router.HandleFunc("/RecentOperation", dashboardHandlers.RecentOperation(db)).Methods("GET")
 }
-
+func setupAppointmentsRoutes(router *mux.Router, db *gorm.DB) {
+	router.HandleFunc("/create", appointmentHandlers.CreateAppointment(db)).Methods("POST", "OPTIONS") // Appointment creation
+    router.HandleFunc("/doctors-patients", appointmentHandlers.GetDoctorsAndPatients(db)).Methods("GET")
+}
 // setupDoctorsRoutes configures routes related to doctors.
-func setupDoctorsRoutes(router *mux.Router) {
-    router.Handle("", http.HandlerFunc(recordHandlers.GetAllDoctors)).Methods("GET")
-    router.Handle("", http.HandlerFunc(recordHandlers.CreateDoctor)).Methods("POST")
-    router.Handle("/{id}", http.HandlerFunc(recordHandlers.GetDoctorByID)).Methods("GET")
-    router.Handle("/{id}", http.HandlerFunc(recordHandlers.UpdateDoctor)).Methods("PUT")
-    router.Handle("/{id}", http.HandlerFunc(recordHandlers.DeleteDoctor)).Methods("DELETE")
+func setupDoctorsRoutes(router *mux.Router, db *gorm.DB) {
+    router.HandleFunc("", recordHandlers.GetAllDoctors(db)).Methods("GET")
+    router.HandleFunc("", recordHandlers.CreateDoctor(db)).Methods("POST")
+    router.HandleFunc("/{id}", recordHandlers.GetDoctorByID(db)).Methods("GET")
+    router.HandleFunc("/{id}", recordHandlers.UpdateDoctor(db)).Methods("PUT")
+    router.HandleFunc("/{id}", recordHandlers.DeleteDoctor(db)).Methods("DELETE")
 }

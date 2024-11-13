@@ -2,10 +2,13 @@ package middleware
 
 import (
 	"context"
-	"net/http"
+	"fmt"
 	"log"
+	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/PragaL15/med_admin_backend/src/utils" // Assuming GenerateJWT and DecodeJWT are in utils
 	"gorm.io/gorm"
 )
 
@@ -13,22 +16,22 @@ const (
 	ErrUnauthorized   = "Unauthorized"
 	ErrInternalServer = "Internal Server Error"
 	ErrForbidden      = "Forbidden"
-	ErrNotAuthorized  = "Not Authorized" // For specific user permission error
+	ErrNotAuthorized  = "Not Authorized"
 )
 
 // RoleBasedAccessMiddleware ensures the user has the proper role to access the route
 func RoleBasedAccessMiddleware(db *gorm.DB) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// 1. Extract the user_id from the JWT token (assuming the token is in the Authorization header)
-			userID, err := getUserIDFromToken(r)
+			// 1. Extract the user_id from the JWT token in the Authorization header
+			userID, err := getUserIDFromJWT(r)
 			if err != nil {
 				http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 				return
 			}
 
 			// Print user_id to confirm it's extracted correctly
-			log.Printf("User ID from token: %d", userID) // Add this log to check the user_id
+			log.Printf("User ID from JWT: %d", userID)
 
 			// 2. Get the route path the user is trying to access
 			routePath := r.URL.Path
@@ -36,7 +39,6 @@ func RoleBasedAccessMiddleware(db *gorm.DB) mux.MiddlewareFunc {
 			// 3. Get the role_id based on the user_id and route_path
 			roleID, err := getUserRoleFromAPI(db, userID, routePath)
 			if err != nil {
-				// Log the error for debugging
 				log.Printf("Error getting user role from API for user_id: %d and route: %s - %v", userID, routePath, err)
 				http.Error(w, ErrInternalServer, http.StatusInternalServerError)
 				return
@@ -59,11 +61,30 @@ func RoleBasedAccessMiddleware(db *gorm.DB) mux.MiddlewareFunc {
 	}
 }
 
+// Helper function to extract userID from JWT token in the Authorization header
+func getUserIDFromJWT(r *http.Request) (int, error) {
+	// Extract the token from the Authorization header
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		log.Printf("Authorization header is missing")
+		return 0, fmt.Errorf("authorization header is missing")
+	}
 
-// Helper function to extract userID from the JWT token
-func getUserIDFromToken(r *http.Request) (int, error) {
-	// Implement your JWT extraction logic here
-	return 1, nil // Example, return actual user ID
+	// The Authorization header should be in the format: "Bearer <token>"
+	tokenParts := strings.Split(authHeader, " ")
+	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
+		log.Printf("Invalid Authorization header format")
+		return 0, fmt.Errorf("invalid authorization header format")
+	}
+
+	// Decode the token to extract the user_id
+	userID, err := utils.DecodeJWTTokenAndGetUserID(tokenParts[1])
+	if err != nil {
+		log.Printf("Error decoding token: %v", err)
+		return 0, fmt.Errorf("error decoding token")
+	}
+
+	return userID, nil
 }
 
 // Helper function to get the role_id based on user_id and route_path
@@ -74,15 +95,13 @@ func getUserRoleFromAPI(db *gorm.DB, userID int, routePath string) (int, error) 
 
 	// Query the api_permissions table to get the role_id for the user and route
 	err := db.Table("api_permissions").
-	Select("api_permissions.role_id").
-	Joins("JOIN user_roles ON user_roles.role_id = api_permissions.role_id").
-	Joins("JOIN user_table ON user_table.user_id = user_roles.user_id").
-	Where("user_table.user_id = ? AND api_permissions.route_path = ?", userID, routePath).
-	First(&permission).Error
-
+		Select("api_permissions.role_id").
+		Joins("JOIN user_roles ON user_roles.role_id = api_permissions.role_id").
+		Joins("JOIN user_table ON user_table.user_id = user_roles.user_id").
+		Where("user_table.user_id = ? AND api_permissions.route_path = ?", userID, routePath).
+		First(&permission).Error
 
 	if err != nil {
-		// Log the error and the query for debugging
 		log.Printf("Failed query: SELECT role_id FROM api_permissions JOIN user_roles ON user_roles.role_id = api_permissions.role_id JOIN user_table ON user_table.user_id = user_roles.user_id WHERE user_table.user_id = %d AND api_permissions.route_path = '%s'. Error: %v", userID, routePath, err)
 		return 0, err
 	}
@@ -99,7 +118,6 @@ func hasPermission(db *gorm.DB, roleID int, routePath string) bool {
 		Count(&permissionCount).Error
 
 	if err != nil {
-		// Log the error
 		log.Printf("Failed to check permission for route '%s' with role_id %d. Error: %v", routePath, roleID, err)
 		return false
 	}

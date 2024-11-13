@@ -1,156 +1,153 @@
 package handlers
 
 import (
-    "context"
-    "database/sql"
-    "encoding/json"
-    "log"
-    "net/http"
-    "strconv"
-    "time"
+	"encoding/json"
+	"log"
+	"net/http"
+	"strconv"
+	"time"
+	"github.com/gorilla/mux"
+	models "github.com/PragaL15/med_admin_backend/src/model"
+    "gorm.io/gorm"
 
-    "github.com/PragaL15/med_admin_backend/database"
-    "github.com/gorilla/mux"
-    models "github.com/PragaL15/med_admin_backend/src/model"
 )
 
 // CreatePatient inserts a new patient record into the database.
-func CreatePatient(w http.ResponseWriter, r *http.Request) {
-    var patient models.Patient
-    if err := json.NewDecoder(r.Body).Decode(&patient); err != nil {
-        http.Error(w, "Invalid request body", http.StatusBadRequest)
-        return
-    }
+func CreatePatient(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var patient models.Patient
+		if err := json.NewDecoder(r.Body).Decode(&patient); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
 
-    // Set CreatedAt and UpdatedAt to the current time
-    patient.CreatedAt = time.Now()
-    patient.UpdatedAt = time.Now()
+		// Set CreatedAt and UpdatedAt to the current time
+		patient.CreatedAt = time.Now()
+		patient.UpdatedAt = time.Now()
 
-    query := `
-        INSERT INTO patient_id (p_id, p_name, p_number, p_email, p_status, createdat, updatedat)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING id
-    `
+		// Create the patient record using GORM
+		if err := db.Create(&patient).Error; err != nil {
+			log.Println("Error creating patient:", err)
+			http.Error(w, "Failed to create patient", http.StatusInternalServerError)
+			return
+		}
 
-    ctx := context.Background()
-    err := database.DB.QueryRow(ctx, query, patient.PID, patient.Name, patient.Phone, patient.Email, patient.Status, patient.CreatedAt, patient.UpdatedAt).Scan(&patient.PID)
-    if err != nil {
-        log.Println("Error creating patient:", err)
-        http.Error(w, "Failed to create patient", http.StatusInternalServerError)
-        return
-    }
-
-    w.WriteHeader(http.StatusCreated)
-    json.NewEncoder(w).Encode(patient)
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(patient)
+	}
 }
 
 // GetAllPatients retrieves all patient records from the database.
-func GetAllPatients(w http.ResponseWriter, r *http.Request) {
-    var patients []models.Patient
-    query := `SELECT id, p_id, p_name, p_number, p_email, p_status, createdat, updatedat FROM patient_id`
+func GetAllPatients(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var patients []models.Patient
 
-    ctx := context.Background()
-    rows, err := database.DB.Query(ctx, query)
-    if err != nil {
-        log.Println("Error retrieving patients:", err)
-        http.Error(w, "Failed to retrieve patients", http.StatusInternalServerError)
-        return
-    }
-    defer rows.Close()
+		// Retrieve all patient records using GORM
+		if err := db.Find(&patients).Error; err != nil {
+			log.Println("Error retrieving patients:", err)
+			http.Error(w, "Failed to retrieve patients", http.StatusInternalServerError)
+			return
+		}
 
-    for rows.Next() {
-        var patient models.Patient
-        if err := rows.Scan(&patient.PID, &patient.PID, &patient.Name, &patient.Phone, &patient.Email, &patient.Status, &patient.CreatedAt, &patient.UpdatedAt); err != nil {
-            log.Println("Error scanning patient:", err)
-            http.Error(w, "Failed to retrieve patients", http.StatusInternalServerError)
-            return
-        }
-        patients = append(patients, patient)
-    }
-
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(patients)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(patients)
+	}
 }
 
 // GetPatientByID retrieves a single patient by ID from the database.
-func GetPatientByID(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    id, err := strconv.Atoi(vars["id"])
-    if err != nil {
-        http.Error(w, "Invalid patient ID", http.StatusBadRequest)
-        return
-    }
+func GetPatientByID(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id, err := strconv.Atoi(vars["id"])
+		if err != nil {
+			http.Error(w, "Invalid patient ID", http.StatusBadRequest)
+			return
+		}
 
-    var patient models.Patient
-    query := `SELECT id, p_id, p_name, p_number, p_email, p_status, createdat, updatedat FROM patient_id WHERE id = $1`
-    ctx := context.Background()
-    err = database.DB.QueryRow(ctx, query, id).Scan(&patient.PID, &patient.PID, &patient.Name, &patient.Phone, &patient.Email, &patient.Status, &patient.CreatedAt, &patient.UpdatedAt)
-    if err == sql.ErrNoRows {
-        http.Error(w, "Patient not found", http.StatusNotFound)
-        return
-    } else if err != nil {
-        log.Println("Error retrieving patient:", err)
-        http.Error(w, "Failed to retrieve patient", http.StatusInternalServerError)
-        return
-    }
+		var patient models.Patient
+		// Retrieve a patient by ID using GORM
+		if err := db.First(&patient, id).Error; err != nil {
+			if err.Error() == "record not found" {
+				http.Error(w, "Patient not found", http.StatusNotFound)
+			} else {
+				log.Println("Error retrieving patient:", err)
+				http.Error(w, "Failed to retrieve patient", http.StatusInternalServerError)
+			}
+			return
+		}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(patient)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(patient)
+	}
 }
 
 // UpdatePatient updates an existing patient record in the database.
-func UpdatePatient(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    id, err := strconv.Atoi(vars["id"])
-    if err != nil {
-        http.Error(w, "Invalid patient ID", http.StatusBadRequest)
-        return
-    }
+func UpdatePatient(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id, err := strconv.Atoi(vars["id"])
+		if err != nil {
+			http.Error(w, "Invalid patient ID", http.StatusBadRequest)
+			return
+		}
 
-    var patient models.Patient
-    if err := json.NewDecoder(r.Body).Decode(&patient); err != nil {
-        http.Error(w, "Invalid request body", http.StatusBadRequest)
-        return
-    }
+		var patient models.Patient
+		if err := json.NewDecoder(r.Body).Decode(&patient); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
 
-    // Set UpdatedAt to the current time
-    patient.UpdatedAt = time.Now()
+		// Set UpdatedAt to the current time
+		patient.UpdatedAt = time.Now()
 
-    query := `
-        UPDATE patient_id
-        SET p_id = $1, p_name = $2, p_number = $3, p_email = $4, p_status = $5, updatedat = $6
-        WHERE id = $7
-    `
-    ctx := context.Background()
-    _, err = database.DB.Exec(ctx, query, patient.PID, patient.Name, patient.Phone, patient.Email, patient.Status, patient.UpdatedAt, id)
-    if err != nil {
-        log.Println("Error updating patient:", err)
-        http.Error(w, "Failed to update patient", http.StatusInternalServerError)
-        return
-    }
+		// Update the patient record using GORM
+		if err := db.Model(&patient).Where("id = ?", id).Updates(map[string]interface{}{
+			"p_id":       patient.PID,
+			"p_name":     patient.Name,
+			"p_number":   patient.Phone,
+			"p_email":    patient.Email,
+			"p_status":   patient.Status,
+			"updatedat":  patient.UpdatedAt,
+			"p_address":  patient.Address,
+			"p_mode":     patient.Mode,
+			"p_age":      patient.Age,
+			"p_gender":   patient.Gender,
+		}).Error; err != nil {
+			log.Println("Error updating patient:", err)
+			http.Error(w, "Failed to update patient", http.StatusInternalServerError)
+			return
+		}
 
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(map[string]string{"message": "Patient updated successfully"})
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Patient updated successfully"})
+	}
 }
 
 // DeletePatient deletes a patient record from the database.
-func DeletePatient(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    id, err := strconv.Atoi(vars["id"])
-    if err != nil {
-        http.Error(w, "Invalid patient ID", http.StatusBadRequest)
-        return
-    }
+func DeletePatient(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id, err := strconv.Atoi(vars["id"])
+		if err != nil {
+			http.Error(w, "Invalid patient ID", http.StatusBadRequest)
+			return
+		}
 
-    query := `DELETE FROM patient_id WHERE id = $1`
-    ctx := context.Background()
-    _, err = database.DB.Exec(ctx, query, id)
-    if err != nil {
-        log.Println("Error deleting patient:", err)
-        http.Error(w, "Failed to delete patient", http.StatusInternalServerError)
-        return
-    }
+		// Delete the patient record using GORM
+		result := db.Where("id = ?", id).Delete(&models.Patient{})
+		if result.Error != nil {
+			log.Println("Error deleting patient:", result.Error)
+			http.Error(w, "Failed to delete patient", http.StatusInternalServerError)
+			return
+		}
 
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(map[string]string{"message": "Patient deleted successfully"})
+		// Check if any rows were deleted
+		if result.RowsAffected == 0 {
+			http.Error(w, "Patient not found", http.StatusNotFound)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Patient deleted successfully"})
+	}
 }

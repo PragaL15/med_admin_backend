@@ -1,50 +1,56 @@
 package utils
 
 import (
-    "errors"
-    "time"
-    "github.com/golang-jwt/jwt/v4"
+	"fmt"
+	"github.com/golang-jwt/jwt/v4"
+	"time"
 )
 
-// Secret key used to sign JWT tokens. Keep this secure, ideally stored in environment variables.
-var jwtSecret = []byte("your_secret_key") // Change this to a strong secret
+// Secret key used to sign the JWT token (replace with your actual secret key)
+var secretKey = []byte("your-secret-key") // Set this to a more secure key in production
 
-// GenerateJWT generates a new JWT for a given user ID.
+// GenerateJWT generates a new JWT token for the user, containing the user ID.
 func GenerateJWT(userID int) (string, error) {
-    // Set token expiration time (e.g., 1 hour)
-    expirationTime := time.Now().Add(time.Hour * 1).Unix()
+	// Create a new JWT token
+	claims := jwt.MapClaims{
+		"user_id": userID,
+		"exp":     time.Now().Add(time.Hour * 24).Unix(), // Expiry time of 1 day
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-    // Define claims for the JWT
-    claims := jwt.MapClaims{
-        "user_id": userID,
-        "exp":     expirationTime,
-    }
+	// Sign the token with the secret key
+	tokenString, err := token.SignedString(secretKey)
+	if err != nil {
+		return "", fmt.Errorf("error signing token: %v", err)
+	}
 
-    // Create a new token and sign it using the HMAC method with the secret key
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-    tokenString, err := token.SignedString(jwtSecret)
-    if err != nil {
-        return "", err
-    }
-    return tokenString, nil
+	return tokenString, nil
 }
 
-// ParseJWT parses and validates a JWT token string, returning the claims if valid.
-func ParseJWT(tokenString string) (jwt.MapClaims, error) {
-    token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-        if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-            return nil, errors.New("unexpected signing method")
-        }
-        return jwtSecret, nil
-    })
+// DecodeJWTTokenAndGetUserID decodes a JWT token and extracts the user ID.
+func DecodeJWTTokenAndGetUserID(tokenString string) (int, error) {
+	// Parse the JWT token
+	parsedToken, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Validate the token's signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return secretKey, nil
+	})
 
-    if err != nil || !token.Valid {
-        return nil, errors.New("invalid or expired token")
-    }
+	if err != nil {
+		return 0, fmt.Errorf("error parsing token: %v", err)
+	}
 
-    claims, ok := token.Claims.(jwt.MapClaims)
-    if !ok {
-        return nil, errors.New("could not parse claims")
-    }
-    return claims, nil
+	// Check if the token is valid
+	if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok && parsedToken.Valid {
+		// Extract the user_id from the claims
+		userID, ok := claims["user_id"].(float64) // user_id stored as float64 in JWT claims
+		if !ok {
+			return 0, fmt.Errorf("user_id not found in token")
+		}
+		return int(userID), nil
+	}
+
+	return 0, fmt.Errorf("invalid token")
 }

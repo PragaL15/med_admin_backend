@@ -1,76 +1,50 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
-	"github.com/PragaL15/med_admin_backend/database"
 	models "github.com/PragaL15/med_admin_backend/src/model"
+	"gorm.io/gorm"
 )
 
 // GetAdmitted handles fetching all records from the admitted table
-func GetAdmitted(w http.ResponseWriter, r *http.Request) {
-    // Enable CORS headers
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-    w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+func GetAdmitted(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Enable CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-    // Handle OPTIONS request for CORS preflight
-    if r.Method == http.MethodOptions {
-        w.WriteHeader(http.StatusOK)
-        return
-    }
+		// Handle OPTIONS request for CORS preflight
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 
-    // Restrict to GET method only
-    if r.Method != http.MethodGet {
-        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-        return
-    }
+		// Restrict to GET method only
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
 
-    // SQL query to retrieve all records from the admitted table
-    query := `
-    SELECT 
-        a.id,                   -- ID from admitted table
-        a.p_id,                 -- Patient ID from admitted table
-        p.p_name,               -- Patient name from patient_id table
-        a.p_health,             -- Patient health from admitted table
-        a.p_operation,          -- Operation type from admitted table
-        a.p_operation_date,     -- Operation date from admitted table
-        a.p_operated_doctor,    -- Operating doctor from admitted table
-        a.duration_admit,       -- Duration of admission from admitted table
-        a.ward_no               -- Ward number from admitted table
-    FROM 
-        admitted a
-    JOIN 
-        patient_id p 
-        ON a.p_id = p.p_id;  -- Join admitted table with patient_id table using p_id
-    `
+		// Declare a variable to store admitted records
+		var admittedRecords []models.Admitted
 
-    rows, err := database.DB.Query(context.Background(), query)
-    if err != nil {
-        http.Error(w, "Error fetching admitted records", http.StatusInternalServerError)
-        return
-    }
-    defer rows.Close()
+		// Use GORM to fetch admitted records with related patient data using a JOIN query
+		err := db.
+			Preload("Patient"). // Preload related Patient data if needed
+			Joins("JOIN patients ON admitted.p_id = patients.p_id"). // Corrected JOIN query
+			Select("admitted.id, admitted.p_id, patients.p_name, admitted.p_health, admitted.p_operation, admitted.p_operation_date, admitted.p_operated_doctor, admitted.duration_admit, admitted.ward_no").
+			Find(&admittedRecords).Error
 
-    var admittedRecords []models.Admitted
+		if err != nil {
+			http.Error(w, "Error fetching admitted records", http.StatusInternalServerError)
+			return
+		}
 
-    // Scan data into Admitted model
-    for rows.Next() {
-        var admitted models.Admitted
-        if err := rows.Scan(
-            &admitted.ID, &admitted.PID, &admitted.PName, &admitted.PHealth, 
-            &admitted.POperation, &admitted.POperationDate, &admitted.POperatedDoctor, 
-            &admitted.DurationAdmit, &admitted.WardNo,
-        ); err != nil {
-            http.Error(w, "Error scanning admitted records", http.StatusInternalServerError)
-            return
-        }
-        admittedRecords = append(admittedRecords, admitted)
-    }
-
-    // Send the records as JSON response
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(admittedRecords)
+		// Send the records as JSON response
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(admittedRecords)
+	}
 }

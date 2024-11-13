@@ -1,55 +1,64 @@
 package handlers
 
 import (
-    "context"
-    "encoding/json"
-    "net/http"
-    "time"
-
-    "github.com/PragaL15/med_admin_backend/database"
+	"encoding/json"
+	"net/http"
+	"time"
+	"gorm.io/gorm"
 )
 
 // PatientStatusRecord holds the structure of each record returned for graphing
 type PatientStatusRecord struct {
-    PatientID int    `json:"p_id"`
-    Month     string `json:"month"`
-    Status    string `json:"p_status"`
+	PatientID int    `json:"p_id"`
+	Month     string `json:"month"`
+	Status    string `json:"p_status"`
 }
 
 // GetPatientStatusForGraph retrieves patient status data for graphing by month
-func GetPatientStatusForGraph(w http.ResponseWriter, r *http.Request) {
-    query := `
-        SELECT 
-            record.p_id,
-            record.date,
-            patient_id.p_status
-        FROM 
-            record
-        JOIN 
-            patient_id ON record.p_id = patient_id.p_id;
-    `
+func GetPatientStatusForGraph(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Enable CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-    rows, err := database.DB.Query(context.Background(), query)
-    if err != nil {
-        http.Error(w, "Error fetching patient status data", http.StatusInternalServerError)
-        return
-    }
-    defer rows.Close()
+		// Handle OPTIONS request for CORS preflight
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 
-    var records []PatientStatusRecord
-    for rows.Next() {
-        var record PatientStatusRecord
-        var date time.Time
-        err := rows.Scan(&record.PatientID, &date, &record.Status)
-        if err != nil {
-            http.Error(w, "Error scanning patient status data", http.StatusInternalServerError)
-            return
-        }
-        // Format the date to display only the month
-        record.Month = date.Format("January")
-        records = append(records, record)
-    }
+		// Restrict to GET method only
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(records)
+		var records []PatientStatusRecord
+
+		// Use GORM to query the record and join with patient_id for the patient status
+		err := db.
+			Table("record").
+			Select("record.p_id, record.date, patient_id.p_status").
+			Joins("JOIN patient_id ON record.p_id = patient_id.p_id").
+			Find(&records).Error
+
+		if err != nil {
+			http.Error(w, "Error fetching patient status data", http.StatusInternalServerError)
+			return
+		}
+
+		// Format the date to display only the month
+		for i := range records {
+			parsedDate, err := time.Parse("2006-01-02", records[i].Month)
+			if err == nil {
+				records[i].Month = parsedDate.Format("January")
+			}
+		}
+
+		// Respond with the patient status records as JSON
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(records)
+	}
 }
