@@ -12,7 +12,6 @@ import (
 
 )
 
-// CreatePatient inserts a new patient record into the database.
 func CreatePatient(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var patient models.Patient
@@ -21,11 +20,9 @@ func CreatePatient(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		// Set CreatedAt and UpdatedAt to the current time
 		patient.CreatedAt = time.Now()
 		patient.UpdatedAt = time.Now()
 
-		// Create the patient record using GORM
 		if err := db.Create(&patient).Error; err != nil {
 			log.Println("Error creating patient:", err)
 			http.Error(w, "Failed to create patient", http.StatusInternalServerError)
@@ -37,12 +34,10 @@ func CreatePatient(db *gorm.DB) http.HandlerFunc {
 	}
 }
 
-// GetAllPatients retrieves all patient records from the database.
 func GetAllPatients(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var patients []models.Patient
 
-		// Retrieve all patient records using GORM
 		if err := db.Find(&patients).Error; err != nil {
 			log.Println("Error retrieving patients:", err)
 			http.Error(w, "Failed to retrieve patients", http.StatusInternalServerError)
@@ -54,7 +49,6 @@ func GetAllPatients(db *gorm.DB) http.HandlerFunc {
 	}
 }
 
-// GetPatientByID retrieves a single patient by ID from the database.
 func GetPatientByID(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -65,7 +59,6 @@ func GetPatientByID(db *gorm.DB) http.HandlerFunc {
 		}
 
 		var patient models.Patient
-		// Retrieve a patient by ID using GORM
 		if err := db.First(&patient, id).Error; err != nil {
 			if err.Error() == "record not found" {
 				http.Error(w, "Patient not found", http.StatusNotFound)
@@ -81,7 +74,6 @@ func GetPatientByID(db *gorm.DB) http.HandlerFunc {
 	}
 }
 
-// UpdatePatient updates an existing patient record in the database.
 func UpdatePatient(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -97,10 +89,8 @@ func UpdatePatient(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		// Set UpdatedAt to the current time
 		patient.UpdatedAt = time.Now()
 
-		// Update the patient record using GORM
 		if err := db.Model(&patient).Where("id = ?", id).Updates(map[string]interface{}{
 			"p_id":       patient.PID,
 			"p_name":     patient.Name,
@@ -123,7 +113,6 @@ func UpdatePatient(db *gorm.DB) http.HandlerFunc {
 	}
 }
 
-// DeletePatient deletes a patient record from the database.
 func DeletePatient(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -133,7 +122,6 @@ func DeletePatient(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		// Delete the patient record using GORM
 		result := db.Where("id = ?", id).Delete(&models.Patient{})
 		if result.Error != nil {
 			log.Println("Error deleting patient:", result.Error)
@@ -141,7 +129,6 @@ func DeletePatient(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		// Check if any rows were deleted
 		if result.RowsAffected == 0 {
 			http.Error(w, "Patient not found", http.StatusNotFound)
 			return
