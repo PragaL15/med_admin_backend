@@ -19,11 +19,11 @@ type LoginRequest struct {
 
 // LoginResponse represents the response after a successful or failed login attempt.
 type LoginResponse struct {
-	Message string `json:"message"`
-	Status  bool   `json:"status"`
-	Token   string `json:"token,omitempty"`  // Token only included on successful login
-	UserID  int    `json:"user_id,omitempty"` // UserID only included on successful login
-	RoleID  int    `json:"role_id,omitempty"` // RoleID of the user
+	Message  string `json:"message"`
+	Status   bool   `json:"status"`
+	Token    string `json:"token,omitempty"`   // Token only included on successful login
+	UserID   int    `json:"user_id,omitempty"` // UserID only included on successful login
+	RoleID   int    `json:"role_id,omitempty"` // RoleID of the user
 	RoleName string `json:"role_name,omitempty"` // RoleName of the user
 }
 
@@ -64,6 +64,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Print the generated token for debugging
+	fmt.Printf("Generated Token: %s\n", tokenString)
+
 	// Decode the token to get the user_id (this is the key part)
 	decodedUserID, err := utils.DecodeJWTTokenAndGetUserID(tokenString)
 	if err != nil {
@@ -71,7 +74,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Print the user_id to the terminal (this is what you want)
+	// Print the decoded user_id to the terminal (this is what you want)
 	fmt.Printf("Decoded user_id: %d\n", decodedUserID)
 
 	// Store user_id in the request context for use in middlewares and other handlers
@@ -80,11 +83,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	// Respond with the token, user ID, and role information
 	response := LoginResponse{
-		Message: "Login successful",
-		Status:  true,
-		Token:   tokenString,
-		UserID:  user.UserID,
-		RoleID:  user.RoleID,
+		Message:  "Login successful",
+		Status:   true,
+		Token:    tokenString,
+		UserID:   user.UserID,
+		RoleID:   user.RoleID,
 		RoleName: user.RoleName,
 	}
 

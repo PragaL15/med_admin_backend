@@ -5,25 +5,42 @@ import (
 	"net/http"
 
 	"github.com/PragaL15/med_admin_backend/database"
-	routers "github.com/PragaL15/med_admin_backend/src/routers/user"
+	"github.com/PragaL15/med_admin_backend/src/routers/user"
 	"github.com/gorilla/handlers"
+
 )
 
 func main() {
-	database.InitializeDB()
-	defer database.DB.Close()
+	// Initialize the database connection with GORM
+	db, err := database.InitializeDB() // Ensure this returns *gorm.DB
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+	defer func() {
+		// Close the GORM connection properly
+		sqlDB, err := db.DB()
+		if err != nil {
+			log.Fatalf("Failed to get raw database connection: %v", err)
+		}
+		if err := sqlDB.Close(); err != nil {
+			log.Fatalf("Failed to close database: %v", err)
+		}
+	}()
 
-	// Initialize router
-	router := routers.SetupRoutes()
+	// Initialize router and pass the GORM database connection
+	router := routers.SetupRoutes(db)
 
 	// CORS settings
 	corsOrigin := handlers.AllowedOrigins([]string{"http://localhost:5173"}) // Allow your frontend origin
-	corsMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"})
-	corsHeaders := handlers.AllowedHeaders([]string{"Origin", "Content-Type", "Accept"})
+	corsMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}) // Allow specific methods
+	corsHeaders := handlers.AllowedHeaders([]string{"Origin", "Content-Type", "Accept", "Authorization"}) // Allow headers
+
+	// CORS middleware with logging
+	corsMiddleware := handlers.CORS(corsOrigin, corsMethods, corsHeaders)
 
 	// Start the server with CORS enabled
 	log.Println("Server starting on :8080")
-	if err := http.ListenAndServe(":8080", handlers.CORS(corsOrigin, corsMethods, corsHeaders)(router)); err != nil {
+	if err := http.ListenAndServe(":8080", corsMiddleware(router)); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
 }

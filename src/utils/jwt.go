@@ -7,14 +7,14 @@ import (
 )
 
 // Secret key used to sign the JWT token (replace with your actual secret key)
-var secretKey = []byte("your-secret-key") // Set this to a more secure key in production
+var secretKey = []byte("your-secret-key") // Use a more secure key in production
 
 // GenerateJWT generates a new JWT token for the user, containing the user ID.
 func GenerateJWT(userID int) (string, error) {
-	// Create a new JWT token
+	// Create a new JWT token with user_id and expiration claim
 	claims := jwt.MapClaims{
 		"user_id": userID,
-		"exp":     time.Now().Add(time.Hour * 24).Unix(), // Expiry time of 1 day
+		"exp":     time.Now().Add(24 * time.Hour).Unix(), // Expiry time of 1 day
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
@@ -38,11 +38,12 @@ func DecodeJWTTokenAndGetUserID(tokenString string) (int, error) {
 		return secretKey, nil
 	})
 
+	// Handle errors from parsing the token
 	if err != nil {
 		return 0, fmt.Errorf("error parsing token: %v", err)
 	}
 
-	// Check if the token is valid
+	// Check if the token is valid and extract the claims
 	if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok && parsedToken.Valid {
 		// Extract the user_id from the claims
 		userID, ok := claims["user_id"].(float64) // user_id stored as float64 in JWT claims

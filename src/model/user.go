@@ -85,15 +85,16 @@ func (Appointment) TableName() string {
 
 // AppointmentPost represents an appointment record for creating new appointments.
 type AppointmentPost struct {
-	ID            int       `gorm:"primaryKey;autoIncrement" json:"id"`
-	PID           int       `gorm:"column:p_id;not null" json:"p_id"`
-	AppDate       time.Time `gorm:"column:app_date;not null" json:"app_date"`
-	PHealth       string    `gorm:"column:p_health" json:"p_health"`
-	DID           int       `gorm:"column:d_id;not null" json:"d_id"`
-	Time          string    `gorm:"column:time" json:"time"`
-	ProblemHint   string    `gorm:"column:problem_hint" json:"problem_hint"`
-	AppoStatus    string    `gorm:"column:appo_status" json:"appo_status"`
+	ID          int       `gorm:"primaryKey;autoIncrement" json:"id"`
+	PID         int       `gorm:"column:p_id;not null" json:"p_id"`
+	AppDate     string    `gorm:"column:app_date;not null" json:"app_date"` 
+	PHealth     string    `gorm:"column:p_health" json:"p_health"`
+	DID         int       `gorm:"column:d_id;not null" json:"d_id"`
+	Time        string    `gorm:"column:time;not null" json:"time"`       
+	ProblemHint string    `gorm:"column:problem_hint" json:"problem_hint"`
+	AppoStatus  string    `gorm:"column:appo_status" json:"appo_status"`
 }
+
 
 func (AppointmentPost) TableName() string {
 	return "appointments"
@@ -118,17 +119,20 @@ func (Admitted) TableName() string {
 	return "admitted"
 }
 
-// User represents a user record.
 type User struct {
 	ID        int       `gorm:"primaryKey;autoIncrement" json:"id"`
-	Username  string    `gorm:"column:username;not null" json:"username"`
+	Username  string    `gorm:"column:username;not null;unique" json:"username"`
 	Password  string    `gorm:"column:password;not null" json:"password"`
-	UserID    int       `gorm:"column:user_id;uniqueIndex" json:"user_id"`
-	Status    int       `gorm:"column:status" json:"status"`
-	RoleID    int       `gorm:"column:role_id" json:"role_id"`
-	RoleName  string    `gorm:"column:role_name" json:"role_name"`
+	UserID    int       `gorm:"column:user_id;uniqueIndex;not null" json:"user_id"` // Unique user identifier
+	Status    int       `gorm:"column:status;default:1" json:"status,omitempty"`    // Default active status
+	RoleID    int       `gorm:"column:role_id" json:"role_id,omitempty"`           // Role foreign key
+	RoleName  string    `gorm:"column:role_name" json:"role_name,omitempty"`       // Role description
+	DID       int       `gorm:"column:d_id" json:"d_id,omitempty"`                 // Doctor ID
+	PID       int       `gorm:"column:p_id" json:"p_id,omitempty"`                 // Patient ID
 	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"created_at"`
 }
+
+
 
 func (User) TableName() string {
 	return "user_table"
@@ -136,9 +140,11 @@ func (User) TableName() string {
 
 // Route represents an API route.
 type Route struct {
-	RouteID   int    `gorm:"primaryKey;autoIncrement" json:"route_id"`
-	RoutePath string `gorm:"column:route_path;not null" json:"route_path"`
-	UserID    int    `gorm:"column:user_id;not null" json:"user_id"`
+	ID        uint      `gorm:"primaryKey;autoIncrement"` 
+	Route     string    `gorm:"type:varchar(255);not null"` 
+	RoleID    int       `gorm:"not null"`
+	CreatedAt time.Time `gorm:"default:current_timestamp"` 
+	UpdatedAt time.Time `gorm:"default:current_timestamp on update current_timestamp"`
 }
 
 func (Route) TableName() string {
