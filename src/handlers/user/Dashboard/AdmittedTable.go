@@ -3,11 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+
 	models "github.com/PragaL15/med_admin_backend/src/model"
 	"gorm.io/gorm"
 )
-
-func GetAdmitted(db *gorm.DB) http.HandlerFunc {
+func GetAdmittedPatients(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
@@ -25,19 +25,19 @@ func GetAdmitted(db *gorm.DB) http.HandlerFunc {
 
 		var admittedRecords []models.Admitted
 
-		err := db.
-			Preload("Patient"). 
-			Joins("JOIN patients ON admitted.p_id = patients.p_id"). 
-			Select("admitted.id, admitted.p_id, patients.p_name, admitted.p_health, admitted.p_operation, admitted.p_operation_date, admitted.p_operated_doctor, admitted.duration_admit, admitted.ward_no").
+		err := db.Table("admitted").
+			Select(`admitted.id, admitted.p_id, patient_id.p_name, admitted.p_health, 
+                    admitted.p_operation, admitted.p_operation_date, admitted.p_operated_doctor, 
+                    admitted.duration_admit, admitted.ward_no`).
+			Joins("JOIN patient_id ON admitted.p_id = patient_id.p_id").
 			Find(&admittedRecords).Error
 
 		if err != nil {
-			http.Error(w, "Error fetching admitted records", http.StatusInternalServerError)
+			http.Error(w, "Error fetching admitted patient data: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(admittedRecords)
 	}
 }

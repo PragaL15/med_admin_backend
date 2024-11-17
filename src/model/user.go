@@ -22,18 +22,18 @@ func (Record) TableName() string {
 
 // Patient represents a patient record.
 type Patient struct {
-	ID        int       `gorm:"primaryKey;autoIncrement" json:"id"`
-	PID       uint      `gorm:"column:p_id;not null;uniqueIndex" json:"p_id"`
-	Name      string    `gorm:"column:p_name" json:"p_name"`
-	Phone     string    `gorm:"column:p_number" json:"p_number"`
-	Email     string    `gorm:"column:p_email" json:"p_email"`
-	Status    string    `gorm:"column:p_status" json:"p_status"`
-	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"created_at"`
-	UpdatedAt time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updated_at"`
-	Address   string    `gorm:"column:p_address" json:"p_address"`
-	Mode      string    `gorm:"column:p_mode" json:"p_mode"`
-	Age       int       `gorm:"column:p_age" json:"p_age"`
-	Gender    string    `gorm:"column:p_gender" json:"p_gender"`
+	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`                // Unique Primary Key
+	PID       uint      `gorm:"column:p_id;not null;uniqueIndex" json:"pid"`       // Unique Patient ID
+	Name      string    `gorm:"column:p_name;not null" json:"name"`                // Patient Name
+	Phone     string    `gorm:"column:p_number;not null" json:"phone"`             // Phone Number
+	Email     string    `gorm:"column:p_email;not null" json:"email"`              // Email Address
+	Status    string    `gorm:"column:p_status" json:"status"`                     // Patient Status
+	Address   string    `gorm:"column:p_address" json:"address"`                   // Address
+	Mode      string    `gorm:"column:p_mode" json:"mode"`                         // Mode of Payment or Consultation
+	Age       int       `gorm:"column:p_age;not null" json:"age"`                  // Age
+	Gender    string    `gorm:"column:p_gender;not null" json:"gender"`            // Gender
+	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"` // Created At Timestamp
+	UpdatedAt time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updatedAt"` // Updated At Timestamp
 }
 
 func (Patient) TableName() string {

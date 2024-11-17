@@ -8,9 +8,9 @@ import (
 )
 
 type PatientStatusRecord struct {
-	PatientID int    `json:"p_id"`
-	Month     string `json:"month"`
-	Status    string `json:"p_status"`
+	PatientID int       `json:"p_id"`
+	Month     string    `json:"month"`    // Change to string to hold the month name
+	Status    string    `json:"p_status"`
 }
 
 func GetPatientStatusForGraph(db *gorm.DB) http.HandlerFunc {
@@ -31,6 +31,7 @@ func GetPatientStatusForGraph(db *gorm.DB) http.HandlerFunc {
 
 		var records []PatientStatusRecord
 
+		// Query the record table and join with patient_id to get the status
 		err := db.
 			Table("record").
 			Select("record.p_id, record.date, patient_id.p_status").
@@ -38,15 +39,20 @@ func GetPatientStatusForGraph(db *gorm.DB) http.HandlerFunc {
 			Find(&records).Error
 
 		if err != nil {
-			http.Error(w, "Error fetching patient status data", http.StatusInternalServerError)
+			http.Error(w, "Error fetching patient status data: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		// Format the date (month) field
 		for i := range records {
+			// Convert date (stored as string) to month name
 			parsedDate, err := time.Parse("2006-01-02", records[i].Month)
 			if err == nil {
+				// Format the date to just the month name
 				records[i].Month = parsedDate.Format("January")
 			}
 		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(records)

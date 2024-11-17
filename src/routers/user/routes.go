@@ -60,7 +60,7 @@ func setupDashboardRoutes(router *mux.Router, db *gorm.DB) {
 	router.HandleFunc("/patient-status", dashboardHandlers.GetPatientStatusForGraph(db)).Methods("GET")
 	router.HandleFunc("/patientDetails", addDetailsHandlers.AddPatient(db)).Methods("POST")
 	router.HandleFunc("/AppointmentTable", dashboardHandlers.GetAppointments(db)).Methods("GET")
-	router.HandleFunc("/AdmittedTable", dashboardHandlers.GetAdmitted(db)).Methods("GET")
+	router.HandleFunc("/AdmittedTable", dashboardHandlers.GetAdmittedPatients(db)).Methods("GET")
 	router.HandleFunc("/RecentOperation", dashboardHandlers.RecentOperation(db)).Methods("GET")
 }
 func setupAppointmentsRoutes(router *mux.Router, db *gorm.DB) {
