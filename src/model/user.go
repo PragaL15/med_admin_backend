@@ -22,18 +22,18 @@ func (Record) TableName() string {
 
 // Patient represents a patient record.
 type Patient struct {
-	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`                // Unique Primary Key
-	PID       uint      `gorm:"column:p_id;not null;uniqueIndex" json:"pid"`       // Unique Patient ID
-	Name      string    `gorm:"column:p_name;not null" json:"name"`                // Patient Name
-	Phone     string    `gorm:"column:p_number;not null" json:"phone"`             // Phone Number
-	Email     string    `gorm:"column:p_email;not null" json:"email"`              // Email Address
-	Status    string    `gorm:"column:p_status" json:"status"`                     // Patient Status
-	Address   string    `gorm:"column:p_address" json:"address"`                   // Address
-	Mode      string    `gorm:"column:p_mode" json:"mode"`                         // Mode of Payment or Consultation
-	Age       int       `gorm:"column:p_age;not null" json:"age"`                  // Age
-	Gender    string    `gorm:"column:p_gender;not null" json:"gender"`            // Gender
-	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"` // Created At Timestamp
-	UpdatedAt time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updatedAt"` // Updated At Timestamp
+	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`               
+	PID       uint      `gorm:"column:p_id;not null;uniqueIndex" json:"p_id"`     
+	Name      string    `gorm:"column:p_name;not null" json:"name"`               
+	Phone     string    `gorm:"column:p_number;not null" json:"phone"`             
+	Email     string    `gorm:"column:p_email;not null" json:"email"`              
+	Status    string    `gorm:"column:p_status" json:"status"`                     
+	Address   string    `gorm:"column:p_address" json:"address"`                   
+	Mode      string    `gorm:"column:p_mode" json:"mode"`                        
+	Age       int       `gorm:"column:p_age;not null" json:"age"`                  
+	Gender    string    `gorm:"column:p_gender;not null" json:"gender"`            
+	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"` 
+	UpdatedAt time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updatedAt"` 
 }
 
 func (Patient) TableName() string {
