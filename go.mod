@@ -3,8 +3,8 @@ module github.com/PragaL15/med_admin_backend
 go 1.22.2
 
 require (
-	github.com/andybalholm/brotli v1.0.5 // indirect
-	github.com/felixge/httpsnoop v1.0.3 // indirect
+	github.com/andybalholm/brotli v1.0.5
+	github.com/felixge/httpsnoop v1.0.3 
 	github.com/gofiber/cors v0.2.2 // indirect
 	github.com/gofiber/fiber v1.13.3 // indirect
 	github.com/gofiber/fiber/v2 v2.52.5 // indirect
