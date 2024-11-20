@@ -25,13 +25,11 @@ func main() {
 		}
 	}()
 
-	// Initialize router and pass the GORM database connection
 	router := routers.SetupRoutes(db)
 
-	// CORS settings
-	corsOrigin := handlers.AllowedOrigins([]string{"http://localhost:5173"}) // Allow your frontend origin
-	corsMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}) // Allow specific methods
-	corsHeaders := handlers.AllowedHeaders([]string{"Origin", "Content-Type", "Accept", "Authorization"}) // Allow headers
+	corsOrigin := handlers.AllowedOrigins([]string{"http://localhost:5173"}) 
+	corsMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}) 
+	corsHeaders := handlers.AllowedHeaders([]string{"Origin", "Content-Type", "Accept", "Authorization"}) 
 
 	corsMiddleware := handlers.CORS(corsOrigin, corsMethods, corsHeaders)
 
