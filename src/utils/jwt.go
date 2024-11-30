@@ -39,6 +39,5 @@ func DecodeJWTTokenAndGetUserID(tokenString string) (int, error) {
 		}
 		return int(userID), nil
 	}
-
 	return 0, fmt.Errorf("invalid token")
 }

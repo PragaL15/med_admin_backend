@@ -40,7 +40,6 @@ func (Patient) TableName() string {
 	return "patient_id"
 }
 
-// Doctor represents a doctor record.
 type Doctor struct {
 	ID        int       `gorm:"primaryKey;autoIncrement" json:"id"`
 	DID       uint      `gorm:"column:d_id;not null;uniqueIndex" json:"d_id"`

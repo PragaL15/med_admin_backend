@@ -43,12 +43,9 @@ func GetPatientStatusForGraph(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		// Format the date (month) field
 		for i := range records {
-			// Convert date (stored as string) to month name
 			parsedDate, err := time.Parse("2006-01-02", records[i].Month)
 			if err == nil {
-				// Format the date to just the month name
 				records[i].Month = parsedDate.Format("January")
 			}
 		}
