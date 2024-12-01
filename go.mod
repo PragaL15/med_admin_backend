@@ -8,11 +8,11 @@ require (
 	github.com/gofiber/cors v0.2.2 // indirect
 	github.com/gofiber/fiber v1.13.3 // indirect
 	github.com/gofiber/fiber/v2 v2.52.5 // indirect
-	github.com/gofiber/utils v0.0.9 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/golang-jwt/jwt/v4 v4.5.1 // indirect
-	github.com/google/uuid v1.5.0 // indirect
-	github.com/gorilla/context v1.1.2 // indirect
+	github.com/gofiber/utils v0.0.9
+	github.com/golang-jwt/jwt v3.2.2+incompatible 
+	github.com/golang-jwt/jwt/v4 v4.5.1 
+	github.com/google/uuid v1.5.0 
+	github.com/gorilla/context v1.1.2 
 	github.com/gorilla/handlers v1.5.2 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gorilla/schema v1.1.0 // indirect
