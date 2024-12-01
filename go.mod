@@ -5,9 +5,9 @@ go 1.22.2
 require (
 	github.com/andybalholm/brotli v1.0.5
 	github.com/felixge/httpsnoop v1.0.3 
-	github.com/gofiber/cors v0.2.2 // indirect
-	github.com/gofiber/fiber v1.13.3 // indirect
-	github.com/gofiber/fiber/v2 v2.52.5 // indirect
+	github.com/gofiber/cors v0.2.2 
+	github.com/gofiber/fiber v1.13.3
+	github.com/gofiber/fiber/v2 v2.52.5 
 	github.com/gofiber/utils v0.0.9
 	github.com/golang-jwt/jwt v3.2.2+incompatible 
 	github.com/golang-jwt/jwt/v4 v4.5.1 
