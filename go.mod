@@ -36,7 +36,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 
 	github.com/mattn/go-isatty v0.0.20 
 	github.com/mattn/go-runewidth v0.0.15 
-	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/rivo/uniseg v0.2.0
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.51.0 // indirect
