@@ -32,7 +32,7 @@ require (
 	github.com/jinzhu/now v1.1.5 
 	github.com/joho/godotenv v1.5.1 
 	github.com/klauspost/compress v1.17.0 
-	github.com/lib/pq v1.10.9 // indirect
+	github.com/lib/pq v1.10.9 
 	github.com/mattn/go-colorable v0.1.13 
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
