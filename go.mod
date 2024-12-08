@@ -28,7 +28,7 @@ require (
 	github.com/jackc/puddle v1.3.0 
 	github.com/jackc/puddle/v2 v2.2.1 
 	github.com/jinzhu/gorm v1.9.16 
-	github.com/jinzhu/inflection v1.0.0 
+	github.com/jinzhu/inflection v1.0.0 //indirect
 	github.com/jinzhu/now v1.1.5 
 	github.com/joho/godotenv v1.5.1 
 	github.com/klauspost/compress v1.17.0 
