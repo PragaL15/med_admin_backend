@@ -40,4 +40,11 @@
 `
 1. Ensures the Content-Type header is application/json. If not, it sends a 415 Unsupported Media Type error and ends the handler.
 ---
+##### Decoding the request body
 
+`var patient models.Patient
+if err := json.NewDecoder(r.Body).Decode(&patient); err != nil {
+    http.Error(w, "Invalid request body", http.StatusBadRequest)
+    return
+}
+`
