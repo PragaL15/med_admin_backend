@@ -43,7 +43,7 @@
 ---
 ##### Decoding the request body
 
-Yes, that's correct! Let  
+
 
 1. **Data in JSON Format**:
    - The client sends a request (e.g., `POST`) to the server with data in JSON format.
