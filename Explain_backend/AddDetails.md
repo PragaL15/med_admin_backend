@@ -45,7 +45,6 @@
 
 Yes, that's correct! Let me rephrase it and elaborate:
 
-### **What Happens When a Client Sends Data**
 
 1. **Data in JSON Format**:
    - The client sends a request (e.g., `POST`) to the server with data in JSON format.
