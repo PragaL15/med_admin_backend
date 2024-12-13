@@ -41,10 +41,6 @@
 `
 1. Ensures the Content-Type header is application/json. If not, it sends a 415 Unsupported Media Type error and ends the handler.
 ---
-##### Decoding the request body
-
-
-
 1. **Data in JSON Format**:
    - The client sends a request (e.g., `POST`) to the server with data in JSON format.
    - Example JSON payload from the client:
