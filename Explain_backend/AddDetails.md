@@ -31,6 +31,7 @@
             return
         }
 `
+
 1. Checks if the HTTP method is not POST. If not, it sends a 405 Method Not Allowed error and ends the handler.
 
 `        if r.Header.Get("Content-Type") != "application/json" {
