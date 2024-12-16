@@ -117,7 +117,6 @@ func UpdateDescriptionByPID(db *gorm.DB) http.HandlerFunc {
 			http.Error(w, "Invalid Patient ID", http.StatusBadRequest)
 			return
 		}
-
 		var data struct {
 			Description string `json:"description"`
 		}
@@ -125,23 +124,19 @@ func UpdateDescriptionByPID(db *gorm.DB) http.HandlerFunc {
 			http.Error(w, "Invalid input", http.StatusBadRequest)
 			return
 		}
-
 		if data.Description == "" {
 			http.Error(w, "Description cannot be empty", http.StatusBadRequest)
 			return
 		}
-
 		if err := db.Model(&models.Record{}).Where("p_id = ?", pID).Update("description", data.Description).Error; err != nil {
 			http.Error(w, "Failed to update description", http.StatusInternalServerError)
 			log.Println("Description update error:", err)
 			return
 		}
-
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
-
 func UpdatePrescription(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		type UpdateData struct {
@@ -153,23 +148,19 @@ func UpdatePrescription(db *gorm.DB) http.HandlerFunc {
 			http.Error(w, "Invalid input", http.StatusBadRequest)
 			return
 		}
-
 		if data.Prescription == "" {
 			http.Error(w, "Prescription cannot be empty", http.StatusBadRequest)
 			return
 		}
-
 		if err := db.Model(&models.Record{}).Where("id IN ?", data.IDs).Update("prescription", data.Prescription).Error; err != nil {
 			http.Error(w, "Failed to update prescription", http.StatusInternalServerError)
 			log.Println("Prescription update error:", err)
 			return
 		}
-
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
-
 func DeleteRecord(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -178,13 +169,11 @@ func DeleteRecord(db *gorm.DB) http.HandlerFunc {
 			http.Error(w, "Invalid ID", http.StatusBadRequest)
 			return
 		}
-
 		if err := db.Delete(&models.Record{}, id).Error; err != nil {
 			http.Error(w, "Failed to delete record", http.StatusInternalServerError)
 			log.Println("Record deletion error:", err)
 			return
 		}
-
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNoContent)
 	}
