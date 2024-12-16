@@ -121,7 +121,6 @@ type User struct {
 func (User) TableName() string {
 	return "user_table"
 }
-
 // Route represents an API route.
 type Route struct {
 	ID        uint      `gorm:"primaryKey;autoIncrement"` 
@@ -130,17 +129,14 @@ type Route struct {
 	CreatedAt time.Time `gorm:"default:current_timestamp"` 
 	UpdatedAt time.Time `gorm:"default:current_timestamp on update current_timestamp"`
 }
-
 func (Route) TableName() string {
 	return "routes"
 }
-
 // Role represents a role record.
 type Role struct {
 	RoleID   int    `gorm:"primaryKey;autoIncrement" json:"role_id"`
 	RoleName string `gorm:"column:role_name;not null" json:"role_name"`
 }
-
 func (Role) TableName() string {
 	return "roles"
 }
