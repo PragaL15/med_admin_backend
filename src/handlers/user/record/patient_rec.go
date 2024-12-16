@@ -28,7 +28,6 @@ func CreatePatient(db *gorm.DB) http.HandlerFunc {
 			http.Error(w, "Failed to create patient", http.StatusInternalServerError)
 			return
 		}
-
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(patient)
 	}
