@@ -61,12 +61,10 @@ func GetDoctorByID(db *gorm.DB) http.HandlerFunc {
 			}
 			return
 		}
-
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(doctor)
 	}
 }
-
 func UpdateDoctor(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
@@ -91,28 +89,23 @@ func UpdateDoctor(db *gorm.DB) http.HandlerFunc {
 			http.Error(w, "Failed to update doctor", http.StatusInternalServerError)
 			return
 		}
-
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"message": "Doctor updated successfully"})
 	}
 }
-
 func DeleteDoctor(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
-
 		result := db.Where("id = ?", id).Delete(&models.Doctor{})
 		if result.Error != nil {
 			log.Printf("Error deleting doctor: %v", result.Error)
 			http.Error(w, "Failed to delete doctor", http.StatusInternalServerError)
 			return
 		}
-
 		if result.RowsAffected == 0 {
 			http.Error(w, "Doctor not found", http.StatusNotFound)
 			return
 		}
-
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"message": "Doctor deleted successfully"})
 	}
