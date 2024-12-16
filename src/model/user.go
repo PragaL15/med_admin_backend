@@ -35,11 +35,9 @@ type Patient struct {
 	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"` 
 	UpdatedAt time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updatedAt"` 
 }
-
 func (Patient) TableName() string {
 	return "patient_id"
 }
-
 type Doctor struct {
 	ID        int       `gorm:"primaryKey;autoIncrement" json:"id"`
 	DID       uint      `gorm:"column:d_id;not null;uniqueIndex" json:"d_id"`
@@ -50,18 +48,15 @@ type Doctor struct {
 	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updated_at"`
 }
-
 func (Doctor) TableName() string {
 	return "doctor_id"
 }
-
 // DoctorWithPatients represents a doctor with assigned patients.
 type DoctorWithPatients struct {
 	DID   uint   `json:"d_id"`
 	DName string `json:"d_name"`
 	PIDs  []int  `json:"p_ids"`
 }
-
 // Appointment represents an appointment record.
 type Appointment struct {
 	ID            int       `gorm:"primaryKey;autoIncrement" json:"id"`
@@ -77,11 +72,9 @@ type Appointment struct {
 	ProblemHint   string    `gorm:"column:problem_hint" json:"problem_hint"`
 	AppoStatus    string    `gorm:"column:appo_status" json:"appo_status"`
 }
-
 func (Appointment) TableName() string {
 	return "appointments"
 }
-
 // AppointmentPost represents an appointment record for creating new appointments.
 type AppointmentPost struct {
 	ID          int       `gorm:"primaryKey;autoIncrement" json:"id"`
@@ -93,8 +86,6 @@ type AppointmentPost struct {
 	ProblemHint string    `gorm:"column:problem_hint" json:"problem_hint"`
 	AppoStatus  string    `gorm:"column:appo_status" json:"appo_status"`
 }
-
-
 func (AppointmentPost) TableName() string {
 	return "appointments"
 }
