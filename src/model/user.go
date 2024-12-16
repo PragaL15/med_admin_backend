@@ -89,7 +89,6 @@ type AppointmentPost struct {
 func (AppointmentPost) TableName() string {
 	return "appointments"
 }
-
 // Admitted represents a record of admitted patients.
 type Admitted struct {
 	ID               int       `gorm:"primaryKey;autoIncrement" json:"id"`
@@ -104,11 +103,9 @@ type Admitted struct {
 	CreatedAt        time.Time `gorm:"column:created_at;autoCreateTime" json:"created_at"`
 	UpdatedAt        time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updated_at"`
 }
-
 func (Admitted) TableName() string {
 	return "admitted"
 }
-
 type User struct {
 	ID        int       `gorm:"primaryKey;autoIncrement" json:"id"`
 	Username  string    `gorm:"column:username;not null;unique" json:"username"`
@@ -121,9 +118,6 @@ type User struct {
 	PID       int       `gorm:"column:p_id" json:"p_id,omitempty"`                 // Patient ID
 	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"created_at"`
 }
-
-
-
 func (User) TableName() string {
 	return "user_table"
 }
