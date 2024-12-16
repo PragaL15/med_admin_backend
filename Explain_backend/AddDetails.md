@@ -100,6 +100,7 @@
 ### **Why We Need `json.Decode`**
 - JSON is a universal data format used in APIs.
 - In Go, to work with this JSON data, you need to:
+
   1. **Parse it**: Convert the raw JSON into a usable Go struct (`Patient`).
   2. **Validate it**: Ensure the data meets your application’s requirements.
   3. **Process it**: Save it to the database or use it for further logic.
