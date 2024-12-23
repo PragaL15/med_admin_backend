@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// Record represents a row in your database table.
 type Record struct {
 	ID          int       `gorm:"primaryKey;autoIncrement" json:"id"`
 	PID         int       `gorm:"column:p_id;not null" json:"p_id"`
