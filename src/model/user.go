@@ -38,6 +38,7 @@ type Patient struct {
 func (Patient) TableName() string {
 	return "patient_id"
 }
+
 type Doctor struct {
 	ID        int       `gorm:"primaryKey;autoIncrement" json:"id"`
 	DID       uint      `gorm:"column:d_id;not null;uniqueIndex" json:"d_id"`
