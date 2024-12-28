@@ -22,7 +22,6 @@ func CreatePatient(db *gorm.DB) http.HandlerFunc {
 
 		patient.CreatedAt = time.Now()
 		patient.UpdatedAt = time.Now()
-
 		if err := db.Create(&patient).Error; err != nil {
 			log.Println("Error creating patient:", err)
 			http.Error(w, "Failed to create patient", http.StatusInternalServerError)
@@ -32,7 +31,6 @@ func CreatePatient(db *gorm.DB) http.HandlerFunc {
 		json.NewEncoder(w).Encode(patient)
 	}
 }
-
 func GetAllPatients(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var patients []models.Patient
