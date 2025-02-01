@@ -24,19 +24,16 @@ func GetAdmittedPatients(db *gorm.DB) http.HandlerFunc {
 		}
 
 		var admittedRecords []models.Admitted
-
 		err := db.Table("admitted").
 			Select(`admitted.id, admitted.p_id, patient_id.p_name, admitted.p_health, 
                     admitted.p_operation, admitted.p_operation_date, admitted.p_operated_doctor, 
                     admitted.duration_admit, admitted.ward_no`).
 			Joins("JOIN patient_id ON admitted.p_id = patient_id.p_id").
 			Find(&admittedRecords).Error
-
 		if err != nil {
 			http.Error(w, "Error fetching admitted patient data: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(admittedRecords)
 	}
