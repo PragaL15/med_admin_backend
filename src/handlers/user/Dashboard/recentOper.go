@@ -8,7 +8,6 @@ import (
 	"gorm.io/gorm"
 	models "github.com/PragaL15/med_admin_backend/src/model"
 )
-
 func RecentOperation(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -19,12 +18,10 @@ func RecentOperation(db *gorm.DB) http.HandlerFunc {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
-
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-
 		var admittedRecords []models.Admitted
 
 		err := db.
@@ -38,12 +35,10 @@ func RecentOperation(db *gorm.DB) http.HandlerFunc {
 			http.Error(w, "Error fetching admitted records", http.StatusInternalServerError)
 			return
 		}
-
 		if len(admittedRecords) == 0 {
 			http.Error(w, "No admitted records found", http.StatusNotFound)
 			return
 		}
-
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		err = json.NewEncoder(w).Encode(admittedRecords)
