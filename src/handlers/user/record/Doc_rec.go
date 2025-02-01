@@ -51,7 +51,6 @@ func GetDoctorByID(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
 		var doctor models.Doctor
-
 		if err := db.Where("id = ?", id).First(&doctor).Error; err != nil {
 			if err.Error() == "record not found" {
 				http.Error(w, "Doctor not found", http.StatusNotFound)
@@ -74,9 +73,7 @@ func UpdateDoctor(db *gorm.DB) http.HandlerFunc {
 			http.Error(w, "Invalid request body", http.StatusBadRequest)
 			return
 		}
-
 		doctor.UpdatedAt = time.Now()
-
 		if err := db.Model(&doctor).Where("id = ?", id).Updates(map[string]interface{}{
 			"d_id":       doctor.DID,
 			"d_name":     doctor.DName,

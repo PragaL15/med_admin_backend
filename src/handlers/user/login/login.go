@@ -10,12 +10,10 @@ import (
 	"fmt"
 	"context"
 )
-
 type LoginRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
-
 type LoginResponse struct {
 	Message  string `json:"message"`
 	Status   bool   `json:"status"`
@@ -24,14 +22,12 @@ type LoginResponse struct {
 	RoleID   int    `json:"role_id,omitempty"` 
 	RoleName string `json:"role_name,omitempty"` 
 }
-
 func Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, `{"message":"Invalid request payload","status":false}`, http.StatusBadRequest)
 		return
 	}
-
 	var user models.User
 	err := database.DB.Where("username = ?", req.Username).First(&user).Error
 	if err != nil {
