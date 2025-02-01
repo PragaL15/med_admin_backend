@@ -23,18 +23,15 @@ func GetDoctorsAndPatients(db *gorm.DB) http.HandlerFunc {
 			http.Error(w, "Failed to retrieve doctors", http.StatusInternalServerError)
 			return
 		}
-
 		if err := db.Table("patient_id").Select("p_id", "p_name").Find(&patients).Error; err != nil {
 			log.Printf("Error retrieving patients: %v", err)
 			http.Error(w, "Failed to retrieve patients", http.StatusInternalServerError)
 			return
 		}
-
 		response := DoctorPatientData{
 			Doctors:  doctors,
 			Patients: patients,
 		}
-
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	}
