@@ -6,13 +6,11 @@ import (
 	"time"
 	"gorm.io/gorm"
 )
-
 type PatientStatusRecord struct {
 	PatientID int       `json:"p_id"`
-	Month     string    `json:"month"`    // Change to string to hold the month name
+	Month     string    `json:"month"`    
 	Status    string    `json:"p_status"`
 }
-
 func GetPatientStatusForGraph(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -31,7 +29,6 @@ func GetPatientStatusForGraph(db *gorm.DB) http.HandlerFunc {
 
 		var records []PatientStatusRecord
 
-		// Query the record table and join with patient_id to get the status
 		err := db.
 			Table("record").
 			Select("record.p_id, record.date, patient_id.p_status").
