@@ -48,7 +48,6 @@ func AddPatient(db *gorm.DB) http.HandlerFunc {
             http.Error(w, "Error inserting new patient", http.StatusInternalServerError)
             return
         }
-
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(http.StatusCreated)
         json.NewEncoder(w).Encode(map[string]interface{}{
