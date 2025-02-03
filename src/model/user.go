@@ -21,7 +21,7 @@ func (Record) TableName() string {
 
 type Patient struct {
 	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`               
-	PID       uint      `gorm:"column:p_id;not null;uniqueIndex" json:"p_id"`     
+	PID       uint      `gorm:"column:p_id;autoIncrement;not null;uniqueIndex" json:"p_id"`     
 	Name      string    `gorm:"column:p_name;not null" json:"name"`               
 	Phone     string    `gorm:"column:p_number;not null" json:"number"`             
 	Email     string    `gorm:"column:p_email;not null" json:"email"`              
@@ -90,7 +90,7 @@ func (AppointmentPost) TableName() string {
 }
 type Admitted struct {
 	ID               int       `gorm:"primaryKey;autoIncrement" json:"id"`
-	PID              int       `gorm:"column:p_id;primaryKey;autoIncrement;not null" json:"p_id"`
+	PID              int       `gorm:"column:p_id;not null" json:"p_id"`
 	PName            string    `gorm:"column:p_name" json:"p_name"`
 	PHealth          string    `gorm:"column:p_health" json:"p_health"`
 	POperation       string    `gorm:"column:p_operation" json:"p_operation"`
