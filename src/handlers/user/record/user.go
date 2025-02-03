@@ -11,12 +11,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// GetRecords retrieves all records.
 func GetRecords(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var records []models.Record
 
-		// Use GORM to find all records
 		if err := db.Find(&records).Error; err != nil {
 			http.Error(w, "Failed to fetch records", http.StatusInternalServerError)
 			log.Println("Database query error:", err)
@@ -28,7 +26,6 @@ func GetRecords(db *gorm.DB) http.HandlerFunc {
 	}
 }
 
-// GetRecordByID retrieves a record by ID.
 func GetRecordByID(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -37,7 +34,6 @@ func GetRecordByID(db *gorm.DB) http.HandlerFunc {
 			http.Error(w, "Invalid ID", http.StatusBadRequest)
 			return
 		}
-
 		var record models.Record
 		if err := db.First(&record, id).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {
@@ -61,7 +57,6 @@ func CreateRecord(db *gorm.DB) http.HandlerFunc {
 			http.Error(w, "Invalid input", http.StatusBadRequest)
 			return
 		}
-
 		record.CreatedAt = time.Now()
 		record.UpdatedAt = time.Now()
 
@@ -75,7 +70,6 @@ func CreateRecord(db *gorm.DB) http.HandlerFunc {
 		json.NewEncoder(w).Encode(record)
 	}
 }
-
 func UpdateRecord(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -109,34 +103,57 @@ func UpdateRecord(db *gorm.DB) http.HandlerFunc {
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
+
 func UpdateDescriptionByPID(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		pID, err := strconv.Atoi(vars["p_id"])
+		pID, err := strconv.Atoi(vars["id"]) 
 		if err != nil {
+			log.Printf("Invalid patient ID: %v", err)
 			http.Error(w, "Invalid Patient ID", http.StatusBadRequest)
 			return
 		}
-		var data struct {
-			Description string `json:"description"`
+
+		var input struct {
+			Description string `json:"description"` 
 		}
-		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+			log.Printf("JSON decode error: %v", err)
 			http.Error(w, "Invalid input", http.StatusBadRequest)
 			return
 		}
-		if data.Description == "" {
+
+		if input.Description == "" {
 			http.Error(w, "Description cannot be empty", http.StatusBadRequest)
 			return
 		}
-		if err := db.Model(&models.Record{}).Where("p_id = ?", pID).Update("description", data.Description).Error; err != nil {
-			http.Error(w, "Failed to update description", http.StatusInternalServerError)
-			log.Println("Description update error:", err)
+
+		var record models.Record
+		if err := db.Where("p_id = ?", pID).First(&record).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				log.Printf("Record not found for p_id: %d", pID)
+				http.Error(w, "Record not found", http.StatusNotFound)
+			} else {
+				log.Printf("Database error: %v", err)
+				http.Error(w, "Database error", http.StatusInternalServerError)
+			}
 			return
 		}
+
+		if err := db.Model(&record).Update("description", input.Description).Error; err != nil {
+			log.Printf("Failed to update description for p_id: %d, error: %v", pID, err)
+			http.Error(w, "Failed to update description", http.StatusInternalServerError)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusNoContent)
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{
+			"message": "Description updated successfully",
+		})
 	}
 }
+
 func UpdatePrescription(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		type UpdateData struct {
