@@ -1,7 +1,6 @@
 package routers
 
 import (
-    addDetailsHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/AddDetails"
     dashboardHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/Dashboard"
     loginHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/login"
     recordHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/record"
@@ -38,7 +37,7 @@ func SetupRoutes(db *gorm.DB) *mux.Router {
     setupDashboardRoutes(apiRouter.PathPrefix("/dashboard").Subrouter(), db)
     setupDoctorsRoutes(apiRouter.PathPrefix("/doctors").Subrouter(), db)
     setupAppointmentsRoutes(apiRouter.PathPrefix("/appointments").Subrouter(), db)
-    setupAddDetailsRoutes(apiRouter.PathPrefix("/details").Subrouter(), db)
+    // setupAddDetailsRoutes(apiRouter.PathPrefix("/details").Subrouter(), db)
 
     return router
 }
@@ -57,7 +56,7 @@ func setupRecordsRoutes(router *mux.Router, db *gorm.DB) {
 func setupPatientsRoutes(router *mux.Router, db *gorm.DB) {
     router.HandleFunc("", recordHandlers.GetAllPatients(db)).Methods("GET")
     router.HandleFunc("", recordHandlers.CreatePatient(db)).Methods("POST")
-    router.HandleFunc("/{id}", recordHandlers.GetPatientByID(db)).Methods("GET")
+    router.HandleFunc("/{p_id}", recordHandlers.GetPatientByID(db)).Methods("GET")
     router.HandleFunc("/{id}", recordHandlers.UpdatePatient(db)).Methods("PUT")
     router.HandleFunc("/{id}", recordHandlers.DeletePatient(db)).Methods("DELETE")
 }
@@ -86,7 +85,7 @@ func setupDoctorsRoutes(router *mux.Router, db *gorm.DB) {
 }
 
 // Add Details routes
-func setupAddDetailsRoutes(router *mux.Router, db *gorm.DB) {
-    router.HandleFunc("/patientDetails", addDetailsHandlers.AddPatient(db)).Methods("POST", "OPTIONS")
-}
+// func setupAddDetailsRoutes(router *mux.Router, db *gorm.DB) {
+//     router.HandleFunc("/patientDetails", addDetailsHandlers.AddPatient(db)).Methods("POST", "OPTIONS")
+// }
 
