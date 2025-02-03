@@ -150,7 +150,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// Create a new patient
 func CreatePatient(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var patient models.Patient
@@ -171,7 +170,6 @@ func CreatePatient(db *gorm.DB) http.HandlerFunc {
 	}
 }
 
-// Get all patients (no changes needed)
 func GetAllPatients(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var patients []models.Patient
@@ -192,14 +190,13 @@ func GetAllPatients(db *gorm.DB) http.HandlerFunc {
 func GetPatientByID(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		p_id, err := strconv.Atoi(vars["p_id"]) // Dynamically extract {p_id} from URL
+		p_id, err := strconv.Atoi(vars["p_id"]) 
 		if err != nil {
 			http.Error(w, "Invalid patient ID", http.StatusBadRequest)
 			return
 		}
 
 		var patient models.Patient
-		// Query using p_id instead of id
 		if err := db.Where("p_id = ?", p_id).First(&patient).Error; err != nil {
 			if err.Error() == "record not found" {
 				http.Error(w, "Patient not found", http.StatusNotFound)
@@ -215,12 +212,10 @@ func GetPatientByID(db *gorm.DB) http.HandlerFunc {
 	}
 }
 
-
-// Update a patient by dynamic ID
 func UpdatePatient(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		id, err := strconv.Atoi(vars["id"]) // Dynamically extract {id} from URL
+		id, err := strconv.Atoi(vars["id"]) 
 		if err != nil {
 			http.Error(w, "Invalid patient ID", http.StatusBadRequest)
 			return
@@ -234,7 +229,6 @@ func UpdatePatient(db *gorm.DB) http.HandlerFunc {
 
 		patient.UpdatedAt = time.Now()
 
-		// Update patient by dynamically extracted id
 		if err := db.Model(&patient).Where("id = ?", id).Updates(map[string]interface{}{
 			"p_id":       patient.PID,
 			"p_name":     patient.Name,
@@ -257,11 +251,10 @@ func UpdatePatient(db *gorm.DB) http.HandlerFunc {
 	}
 }
 
-// Delete a patient by dynamic ID
 func DeletePatient(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		id, err := strconv.Atoi(vars["id"]) // Dynamically extract {id} from URL
+		id, err := strconv.Atoi(vars["id"]) 
 		if err != nil {
 			http.Error(w, "Invalid patient ID", http.StatusBadRequest)
 			return

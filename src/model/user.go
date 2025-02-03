@@ -23,15 +23,18 @@ type Patient struct {
 	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`               
 	PID       uint      `gorm:"column:p_id;not null;uniqueIndex" json:"p_id"`     
 	Name      string    `gorm:"column:p_name;not null" json:"name"`               
-	Phone     string    `gorm:"column:p_number;not null" json:"phone"`             
+	Phone     string    `gorm:"column:p_number;not null" json:"number"`             
 	Email     string    `gorm:"column:p_email;not null" json:"email"`              
 	Status    string    `gorm:"column:p_status" json:"status"`                     
 	Address   string    `gorm:"column:p_address" json:"address"`                   
 	Mode      string    `gorm:"column:p_mode" json:"mode"`                        
 	Age       int       `gorm:"column:p_age;not null" json:"age"`                  
-	Gender    string    `gorm:"column:p_gender;not null" json:"gender"`            
-	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"` 
-	UpdatedAt time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updatedAt"` 
+	Gender    string    `gorm:"column:p_gender;not null" json:"gender"`
+	DOB       time.Time   `gorm:"type:date"column:dob;not null" json:"dob"`       
+	Occupation string `gorm:"column:occupation;not null" json:"occupation"`     
+	Language   string `gorm:"column:lang_spoken;not null" json:"lang_spoken"`
+	CreatedAt time.Time `gorm:"column:createdat;autoCreateTime" json:"createdAt"` 
+	UpdatedAt time.Time `gorm:"column:updatedat;autoUpdateTime" json:"updatedAt"` 
 }
 func (Patient) TableName() string {
 	return "patient_id"
@@ -87,7 +90,7 @@ func (AppointmentPost) TableName() string {
 }
 type Admitted struct {
 	ID               int       `gorm:"primaryKey;autoIncrement" json:"id"`
-	PID              int       `gorm:"column:p_id;not null" json:"p_id"`
+	PID              int       `gorm:"column:p_id;primaryKey;autoIncrement;not null" json:"p_id"`
 	PName            string    `gorm:"column:p_name" json:"p_name"`
 	PHealth          string    `gorm:"column:p_health" json:"p_health"`
 	POperation       string    `gorm:"column:p_operation" json:"p_operation"`

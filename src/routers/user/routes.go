@@ -1,15 +1,16 @@
 package routers
 
 import (
-    dashboardHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/Dashboard"
-    loginHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/login"
-    recordHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/record"
-    appointmentHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/BookAppointment"
+	addDetailsHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/AddDetails"
+	appointmentHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/BookAppointment"
+	dashboardHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/Dashboard"
+	loginHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/login"
+	recordHandlers "github.com/PragaL15/med_admin_backend/src/handlers/user/record"
 
-    "github.com/PragaL15/med_admin_backend/src/middleware"
-    "github.com/gorilla/handlers"
-    "github.com/gorilla/mux"
-    "gorm.io/gorm"
+	"github.com/PragaL15/med_admin_backend/src/middleware"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"gorm.io/gorm"
 )
 
 func SetupRoutes(db *gorm.DB) *mux.Router {
@@ -28,7 +29,7 @@ func SetupRoutes(db *gorm.DB) *mux.Router {
 
     // Protected API routes
     apiRouter := router.PathPrefix("/api").Subrouter()
-    apiRouter.Use(middleware.RoleBasedAccessMiddleware(db)) // Role-based access middleware
+    apiRouter.Use(middleware.RoleBasedAccessMiddleware(db)) 
     apiRouter.Use(corsMiddleware)
 
     // Grouped routes
@@ -37,7 +38,7 @@ func SetupRoutes(db *gorm.DB) *mux.Router {
     setupDashboardRoutes(apiRouter.PathPrefix("/dashboard").Subrouter(), db)
     setupDoctorsRoutes(apiRouter.PathPrefix("/doctors").Subrouter(), db)
     setupAppointmentsRoutes(apiRouter.PathPrefix("/appointments").Subrouter(), db)
-    // setupAddDetailsRoutes(apiRouter.PathPrefix("/details").Subrouter(), db)
+    setupAddDetailsRoutes(apiRouter.PathPrefix("/details").Subrouter(), db)
 
     return router
 }
@@ -85,7 +86,7 @@ func setupDoctorsRoutes(router *mux.Router, db *gorm.DB) {
 }
 
 // Add Details routes
-// func setupAddDetailsRoutes(router *mux.Router, db *gorm.DB) {
-//     router.HandleFunc("/patientDetails", addDetailsHandlers.AddPatient(db)).Methods("POST", "OPTIONS")
-// }
+func setupAddDetailsRoutes(router *mux.Router, db *gorm.DB) {
+    router.HandleFunc("/patientDetails", addDetailsHandlers.AddPatient(db)).Methods("POST", "OPTIONS")
+}
 
