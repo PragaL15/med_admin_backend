@@ -1,9 +1,7 @@
 ## 🏥 Medical Record Backend - Secure API with JWT & Role-Based Authentication 🚀
 
 Welcome to the **Medical Record Backend**, a secure and scalable system designed to **fetch, store, and manage** patient details, doctor details, and doctor-patient conversations. It provides **role-based access control (RBAC) with JWT authentication** to ensure data privacy and security. 🔐  
-
 ---
-
 ## 🌟 **Key Features**
 ✅ **JWT Authentication** - Secure login and token-based access control 🔑  
 ✅ **Role-Based Access (RBAC)** - API access controlled by user roles (Admin, Doctor, Patient) 🛂  
@@ -27,15 +25,15 @@ Welcome to the **Medical Record Backend**, a secure and scalable system designed
 ## 🚀 **How to Set Up Locally**
 ### **🔹 Prerequisites**
 1️⃣ Install **Go** (v1.19+) 🛠️  
-2️⃣ Install **PostgreSQL** 🗄️  
-3️⃣ Clone the repository 🔽  
+2️⃣ Install **PostgreSQL** - PostgreSQL v.16🗄️  
+3️⃣ Clone the repository  
 ```sh
-git clone https://github.com/PragaL15/medical_record.git
-cd medical_record
+git clone https://github.com/PragaL15/med_admin_backend
 ```
 4️⃣ Install dependencies 📦  
 ```sh
 go mod tidy
+go get import_file_name
 ```
 5️⃣ Create a **.env** file for environment variables 🌍  
 ```sh
@@ -53,7 +51,6 @@ go run main.go
 Now, the backend is running on **`http://localhost:4000`** 🎉  
 
 ---
-
 ## 📌 **Project Structure**
 ```sh
 medical_record/
