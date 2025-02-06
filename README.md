@@ -1,6 +1,5 @@
 ## 🏥 Medical Record Backend - Secure API with JWT & Role-Based Authentication 🚀
-
-Welcome to the **Medical Record Backend**, a secure and scalable system designed to **fetch, store, and manage** patient details, doctor details, and doctor-patient conversations. It provides **role-based access control (RBAC) with JWT authentication** to ensure data privacy and security. 🔐  
+  
 ---
 ## 🌟 **Key Features**
 ✅ **JWT Authentication** - Secure login and token-based access control 🔑  
