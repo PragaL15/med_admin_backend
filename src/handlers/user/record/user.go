@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"errors"
 	models "github.com/PragaL15/med_admin_backend/src/model"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
@@ -103,56 +104,67 @@ func UpdateRecord(db *gorm.DB) http.HandlerFunc {
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
-
 func UpdateDescriptionByPID(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		pID, err := strconv.Atoi(vars["id"]) 
-		if err != nil {
-			log.Printf("Invalid patient ID: %v", err)
-			http.Error(w, "Invalid Patient ID", http.StatusBadRequest)
-			return
-		}
+		
+			vars := mux.Vars(r)
+			idStr := vars["p_id"]
 
-		var input struct {
-			Description string `json:"description"` 
-		}
-		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-			log.Printf("JSON decode error: %v", err)
-			http.Error(w, "Invalid input", http.StatusBadRequest)
-			return
-		}
-
-		if input.Description == "" {
-			http.Error(w, "Description cannot be empty", http.StatusBadRequest)
-			return
-		}
-
-		var record models.Record
-		if err := db.Where("p_id = ?", pID).First(&record).Error; err != nil {
-			if err == gorm.ErrRecordNotFound {
-				log.Printf("Record not found for p_id: %d", pID)
-				http.Error(w, "Record not found", http.StatusNotFound)
-			} else {
-				log.Printf("Database error: %v", err)
-				http.Error(w, "Database error", http.StatusInternalServerError)
+			id, err := strconv.Atoi(idStr)
+			if err != nil {
+					log.Printf("Invalid patient ID: %v", err)
+					http.Error(w, "Invalid Patient ID", http.StatusBadRequest)
+					return
 			}
-			return
-		}
 
-		if err := db.Model(&record).Update("description", input.Description).Error; err != nil {
-			log.Printf("Failed to update description for p_id: %d, error: %v", pID, err)
-			http.Error(w, "Failed to update description", http.StatusInternalServerError)
-			return
-		}
+			var input struct {
+					Pid         int    `json:"p_id"`
+					Description string `json:"description"`
+			}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{
-			"message": "Description updated successfully",
-		})
+			if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+					log.Printf("JSON decode error: %v", err)
+					http.Error(w, "Invalid input", http.StatusBadRequest)
+					return
+			}
+
+			if input.Pid != id {
+					log.Printf("Mismatch between p_id in URL (%d) and p_id in body (%d)", id, input.Pid)
+					http.Error(w, "Patient ID mismatch", http.StatusBadRequest)
+					return
+			}
+
+			if input.Description == "" {
+					http.Error(w, "Description cannot be empty", http.StatusBadRequest)
+					return
+			}
+
+			var record models.Record
+			if err := db.Where("p_id = ?", id).First(&record).Error; err != nil {
+					if errors.Is(err, gorm.ErrRecordNotFound) {
+							log.Printf("Record not found for p_id: %d", id)
+							http.Error(w, "Record not found", http.StatusNotFound)
+					} else {
+							log.Printf("Database error: %v", err)
+							http.Error(w, "Database error", http.StatusInternalServerError)
+					}
+					return
+			}
+
+			if err := db.Model(&record).Update("description", input.Description).Error; err != nil {
+					log.Printf("Failed to update description for p_id: %d, error: %v", id, err)
+					http.Error(w, "Failed to update description", http.StatusInternalServerError)
+					return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]string{
+					"message": "Description updated successfully",
+			})
 	}
 }
+
 
 func UpdatePrescription(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
