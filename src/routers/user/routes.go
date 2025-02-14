@@ -26,7 +26,6 @@ func SetupRoutes(db *gorm.DB) *mux.Router {
     // Public routes
     router.HandleFunc("/login", loginHandlers.Login).Methods("POST")
 
-    // Protected API routes
     apiRouter := router.PathPrefix("/api").Subrouter()
     apiRouter.Use(middleware.RoleBasedAccessMiddleware(db)) 
     apiRouter.Use(corsMiddleware)
