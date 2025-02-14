@@ -16,7 +16,6 @@ import (
 func SetupRoutes(db *gorm.DB) *mux.Router {
     router := mux.NewRouter()
 
-    // Add CORS middleware
     corsMiddleware := handlers.CORS(
         handlers.AllowedOrigins([]string{"http://localhost:5173"}), 
         handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
