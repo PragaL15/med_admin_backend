@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-
 	models "github.com/PragaL15/med_admin_backend/src/model"
 	"gorm.io/gorm"
 )
@@ -43,7 +42,7 @@ func AddPatient(db *gorm.DB) http.HandlerFunc {
 		}
 
 		patient := models.Patient{
-            PID:       input.PID,
+      PID:       input.PID,
 			Name:      input.Name,
 			Phone:     input.Phone,
 			Email:     input.Email,
@@ -51,8 +50,8 @@ func AddPatient(db *gorm.DB) http.HandlerFunc {
 			Age:       input.Age,
 			Gender:    input.Gender,
 			DOB:       parsedDOB,
-            Occupation: input.Occupation,
-            Language: input.Language,
+      Occupation: input.Occupation,
+      Language: input.Language,
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		}
