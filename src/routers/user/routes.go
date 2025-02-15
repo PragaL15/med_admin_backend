@@ -83,7 +83,7 @@ func setupDoctorsRoutes(router *mux.Router, db *gorm.DB) {
     router.HandleFunc("/{id}", recordHandlers.DeleteDoctor(db)).Methods("DELETE")
 }
 
-// Add Details routes
+// Add Details route
 func setupAddDetailsRoutes(router *mux.Router, db *gorm.DB) {
     router.HandleFunc("/patientDetails", addDetailsHandlers.AddPatient(db)).Methods("POST", "OPTIONS")
 }
